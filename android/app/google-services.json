@@ -1,0 +1,155 @@
+{
+  "project_info": {
+    "project_number": "489153684515",
+    "firebase_url": "https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "little-strategy-6837a",
+    "storage_bucket": "little-strategy-6837a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:489153684515:android:49710c447f7c13f0fe3d96",
+        "android_client_info": {
+          "package_name": "com.little_strategy.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByBjOSUKP_UenH0lJT_Vm1dShcOIUASWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "489153684515-3mi069lrl1s4j1bepva0mf5nk04b4o45.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.littleStrategy"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:489153684515:android:9986ab7f9f287b81fe3d96",
+        "android_client_info": {
+          "package_name": "com.nano_ludo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByBjOSUKP_UenH0lJT_Vm1dShcOIUASWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "489153684515-3mi069lrl1s4j1bepva0mf5nk04b4o45.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.littleStrategy"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:489153684515:android:37559d1a5d344485fe3d96",
+        "android_client_info": {
+          "package_name": "com.nice_ludo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByBjOSUKP_UenH0lJT_Vm1dShcOIUASWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "489153684515-3mi069lrl1s4j1bepva0mf5nk04b4o45.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.littleStrategy"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:489153684515:android:a96b9b8fe4cf52e4fe3d96",
+        "android_client_info": {
+          "package_name": "com.rnd_game.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByBjOSUKP_UenH0lJT_Vm1dShcOIUASWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "489153684515-ftihf2aoucat3hhfk16o0gtl9ecr6pna.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "489153684515-3mi069lrl1s4j1bepva0mf5nk04b4o45.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.littleStrategy"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

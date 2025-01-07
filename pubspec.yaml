@@ -9,6 +9,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  firebase_core: ^3.9.0
+  cloud_firestore: ^5.6.0
+  hugeicons: ^0.0.7
+  riverpod: ^2.6.1
+  riverpod_generator: ^2.6.3
+  build_runner: ^2.4.14
+  equatable: ^2.0.7
+  riverpod_annotation: ^2.6.1
+  firebase_database: ^11.2.0
+  flutter_riverpod: ^2.6.1
+  freezed: ^2.5.7
+  collection: ^1.19.0
 
 dev_dependencies:
   flutter_test:
