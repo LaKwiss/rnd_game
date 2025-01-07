@@ -24,6 +24,10 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
+  void navigateToGame() {
+    Navigator.of(context).pushReplacementNamed('/game');
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -39,7 +43,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _passwordController.text,
         );
         if (data) {
-          Navigator.of(context).pushReplacementNamed('/game');
+          navigateToGame();
         }
       } else {
         final data = await AuthRepository.login(
@@ -47,7 +51,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _passwordController.text,
         );
         if (data) {
-          Navigator.of(context).pushReplacementNamed('/game');
+          navigateToGame();
         }
       }
       // On success, the AuthStateChanges stream will handle navigation
