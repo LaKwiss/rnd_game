@@ -49,6 +49,14 @@ class ExplodingAtomsView extends ConsumerWidget {
             ),
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            await ExplodingAtomsRepository.sendExplodingAtoms(
+              ExplodingAtoms.empty,
+            );
+          },
+          child: const Icon(Icons.refresh),
+        ),
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:equatable/equatable.dart';
 import 'package:rnd_game/cell.dart';
 
+import 'dart:developer' as dev;
+
 class ExplodingAtoms extends Equatable {
   final String id;
   final List<Cell> grid;
@@ -87,14 +89,14 @@ class ExplodingAtoms extends Equatable {
     final index = x * cols + y;
     final cell = grid[index];
 
-    if (cell.atomCount == cell.maxAmount) {
-      explode(x, y);
-      return this;
-    }
-    if (isCorner(x, y) && cell.atomCount == 2) return this;
-    if (isEdge(x, y) && cell.atomCount == 3) return this;
+    cell.atomCount++;
 
-    return copyWithCell(x, y, cell.copyWith(atomCount: cell.atomCount + 1));
+    if (cell.atomCount == getMaxValue(x, y)) {
+      return explode(x, y);
+    }
+
+    // Sinon on l’incrémente
+    return copyWithCell(x, y, cell);
   }
 
   bool isCorner(int x, int y) {
@@ -110,30 +112,40 @@ class ExplodingAtoms extends Equatable {
 
   ExplodingAtoms explode(int x, int y) {
     Cell cell = grid[x * cols + y];
-    if (cell.isExploding) {
-      cell.atomCount = 0;
-      cell.playerId = null;
+    cell.atomCount = 0;
+    cell.playerId = null;
 
-      List<Cell> neighbors = getNeighbor(x, y);
+    List<Cell> neighbors = getNeighbor(x, y);
 
-      for (Cell neighbor in neighbors) {
-        neighbor.atomCount++;
-        neighbor.playerId = cell.playerId;
+    for (Cell neighbor in neighbors) {
+      neighbor.atomCount++;
+      neighbor.playerId = cell.playerId;
 
-        if (neighbor.isExploding) {
-          explode(neighbor.x, neighbor.y);
-        }
+      if (neighbor.atomCount == getMaxValue(x, y)) {
+        explode(neighbor.x, neighbor.y);
       }
     }
+
     return this;
   }
 
+  int getMaxValue(int x, int y) {
+    if (isCorner(x, y)) {
+      return 2;
+    } else if (isEdge(x, y)) {
+      return 3;
+    } else {
+      return 4;
+    }
+  }
+
   List<Cell> getNeighbor(int x, int y) {
-    final neighbors = <Cell>[];
-    if (x > 0 && x - 1 < rows) neighbors.add(grid[(x - 1) * cols + y]);
-    if (x < rows - 1 && x + 1 < rows) neighbors.add(grid[(x + 1) * cols + y]);
-    if (y > 0 && y - 1 < cols) neighbors.add(grid[x * cols + y - 1]);
-    if (y < cols - 1 && y + 1 < cols) neighbors.add(grid[x * cols + y + 1]);
+    List<Cell> neighbors = [];
+    if (y > 0) neighbors.add(grid[x * cols + y - 1]);
+    if (x > 0) neighbors.add(grid[(x - 1) * cols + y]);
+    if (y < 7) neighbors.add(grid[x * cols + y + 1]);
+    if (x < 7) neighbors.add(grid[(x + 1) * cols + y]);
+
     return neighbors;
   }
 

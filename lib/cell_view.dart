@@ -19,6 +19,26 @@ class _CellViewState extends ConsumerState<CellView> {
       onTap: () {
         widget.onTap();
       },
+      onLongPress: () => showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                title: const Text('Cell Info'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Player ID: ${widget.cell.playerId}'),
+                    Text('Atom Count: ${widget.cell.atomCount}'),
+                    Text('X: ${widget.cell.x}'),
+                    Text('Y: ${widget.cell.y}'),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Close'),
+                  ),
+                ],
+              )),
       child: Padding(
         padding: const EdgeInsets.all(1.0),
         child: Container(
