@@ -14,15 +14,13 @@ class CellView extends ConsumerStatefulWidget {
 }
 
 class _CellViewState extends ConsumerState<CellView> {
-  late bool isCurrentPlayer = false;
+  late bool isCurrentPlayer;
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final playerId = SharedPreferencesRepository.getUid();
-      setState(() {
-        isCurrentPlayer = playerId == widget.cell.playerId;
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final playerId = await SharedPreferencesRepository.getUid();
+      isCurrentPlayer = true;
     });
 
     super.initState();
@@ -157,7 +155,7 @@ class Dot extends StatelessWidget {
         width: 18,
         height: 18,
         decoration: BoxDecoration(
-          color: isCurrentPlayer ? Colors.blue : Colors.red,
+          color: isCurrentPlayer ? Colors.black : Colors.red,
           shape: BoxShape.circle,
         ),
       ),

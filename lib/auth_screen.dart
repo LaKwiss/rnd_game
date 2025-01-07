@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rnd_game/auth_repository.dart';
+import 'package:rnd_game/shared_preferences_repository.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -24,7 +25,8 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  void navigateToGame() {
+  void handleNextStep() {
+    SharedPreferencesRepository.setUid(FirebaseAuth.instance.currentUser!.uid);
     Navigator.of(context).pushReplacementNamed('/game');
   }
 
@@ -43,7 +45,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _passwordController.text,
         );
         if (data) {
-          navigateToGame();
+          handleNextStep();
         }
       } else {
         final data = await AuthRepository.login(
@@ -51,7 +53,7 @@ class _AuthScreenState extends State<AuthScreen> {
           _passwordController.text,
         );
         if (data) {
-          navigateToGame();
+          handleNextStep();
         }
       }
       // On success, the AuthStateChanges stream will handle navigation

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:equatable/equatable.dart';
+import 'package:rnd_game/auth_repository.dart';
 import 'package:rnd_game/cell.dart';
 
 class ExplodingAtoms extends Equatable {
@@ -83,20 +84,22 @@ class ExplodingAtoms extends Equatable {
     lastPlayerId: 'player1',
   );
 
-  ExplodingAtoms addAtom(int x, int y) {
+  Future<String> get currentPlayerId async {
+    return await AuthRepository.getUid() ?? 'Empty';
+  }
+
+  Future<ExplodingAtoms> addAtom(int x, int y) async {
     final index = x * cols + y;
     final cell = grid[index];
 
     cell.atomCount++;
 
-    print(lastPlayerId);
-    if (cell.playerId == null) {
-      cell.playerId = lastPlayerId;
-    }
+    cell.playerId = await currentPlayerId;
 
     if (cell.atomCount == getMaxValue(x, y)) {
       cell.playerId = null;
-      return explode(x, y);
+      final newBoard = await explode(x, y);
+      return newBoard;
     }
 
     // Sinon on l’incrémente
@@ -114,17 +117,15 @@ class ExplodingAtoms extends Equatable {
     return x == 0 || y == 0 || x == rows - 1 || y == cols - 1;
   }
 
-  ExplodingAtoms explode(int x, int y) {
+  Future<ExplodingAtoms> explode(int x, int y) async {
     Cell cell = grid[x * cols + y];
     cell.atomCount = 0;
-
-    //cell.playerId = null;
 
     List<Cell> neighbors = getNeighbor(x, y);
 
     for (Cell neighbor in neighbors) {
       neighbor.atomCount++;
-      neighbor.playerId = lastPlayerId;
+      neighbor.playerId = await currentPlayerId;
 
       if (neighbor.atomCount == getMaxValue(neighbor.x, neighbor.y)) {
         explode(neighbor.x, neighbor.y);
@@ -154,15 +155,24 @@ class ExplodingAtoms extends Equatable {
     return neighbors;
   }
 
-  static final empty = ExplodingAtoms(
-    id: 'empty',
-    grid: List.generate(64, (index) {
-      int x = index ~/ 8;
-      int y = index % 8;
-      return Cell(atomCount: 0, x: x, y: y);
-    }),
-    rows: 8,
-    cols: 8,
-    lastPlayerId: '',
-  );
+  static ExplodingAtoms createEmpty({
+    required String id,
+    int rows = 8,
+    int cols = 8,
+  }) {
+    return ExplodingAtoms(
+      id: id,
+      grid: List.generate(
+        rows * cols,
+        (index) => Cell(
+          atomCount: 0,
+          x: index ~/ cols,
+          y: index % cols,
+        ),
+      ),
+      rows: rows,
+      cols: cols,
+      lastPlayerId: '',
+    );
+  }
 }

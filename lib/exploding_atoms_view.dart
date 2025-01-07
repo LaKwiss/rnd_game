@@ -21,9 +21,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final data = await SharedPreferencesRepository.getUid();
-      setState(() {
-        playerId = data ?? '';
-      });
+      playerId = data ?? '';
     });
     super.initState();
   }
@@ -44,7 +42,8 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
               data: (explodingAtomsList) {
                 // Prendre le premier jeu ou créer un nouveau si la liste est vide
                 final explodingAtoms = explodingAtomsList.isEmpty
-                    ? ExplodingAtoms.empty
+                    ? ExplodingAtoms.createEmpty(
+                        id: playerId + DateTime.now().toString())
                     : explodingAtomsList.first;
 
                 return Column(
@@ -56,7 +55,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
                             CellView(
                               explodingAtoms.grid[i * 8 + j],
                               () async {
-                                final copy = explodingAtoms.addAtom(i, j);
+                                final copy = await explodingAtoms.addAtom(i, j);
                                 await ExplodingAtomsRepository
                                     .sendExplodingAtoms(copy);
                               },
@@ -72,7 +71,8 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             await ExplodingAtomsRepository.sendExplodingAtoms(
-              ExplodingAtoms.empty,
+              ExplodingAtoms.createEmpty(
+                  id: playerId + DateTime.now().toString()),
             );
           },
           child: const Icon(Icons.refresh),
