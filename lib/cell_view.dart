@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rnd_game/cell.dart';
+import 'package:rnd_game/shared_preferences_repository.dart';
 
 class CellView extends ConsumerStatefulWidget {
   const CellView(this.cell, this.onTap, {super.key});
@@ -13,9 +14,24 @@ class CellView extends ConsumerStatefulWidget {
 }
 
 class _CellViewState extends ConsumerState<CellView> {
+  late bool isCurrentPlayer = false;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final playerId = SharedPreferencesRepository.getUid();
+      setState(() {
+        isCurrentPlayer = playerId == widget.cell.playerId;
+      });
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cell = widget.cell;
+
     return GestureDetector(
       onTap: () {
         widget.onTap();
@@ -57,65 +73,65 @@ class _CellViewState extends ConsumerState<CellView> {
               0 => const SizedBox.shrink(),
               1 => Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: const [
+                  children: [
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Dot(),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                   ],
                 ),
               2 => Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Dot(),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Dot(),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                   ],
                 ),
               3 => Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Dot(),
-                        Dot(),
+                        Dot(isCurrentPlayer),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Dot(),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                   ],
                 ),
               _ => Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Dot(),
-                        Dot(),
+                        Dot(isCurrentPlayer),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Dot(),
-                        Dot(),
+                        Dot(isCurrentPlayer),
+                        Dot(isCurrentPlayer),
                       ],
                     ),
                   ],
@@ -129,7 +145,9 @@ class _CellViewState extends ConsumerState<CellView> {
 }
 
 class Dot extends StatelessWidget {
-  const Dot({super.key});
+  const Dot(this.isCurrentPlayer, {super.key});
+
+  final bool isCurrentPlayer;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +157,7 @@ class Dot extends StatelessWidget {
         width: 18,
         height: 18,
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: isCurrentPlayer ? Colors.blue : Colors.red,
           shape: BoxShape.circle,
         ),
       ),

@@ -8,4 +8,10 @@ class SharedPreferencesRepository {
       prefs.setString('uid', uid);
     });
   }
+
+  static FutureOr<String?> getUid() async {
+    return SharedPreferences.getInstance().then((prefs) {
+      return prefs.getString('uid');
+    });
+  }
 }

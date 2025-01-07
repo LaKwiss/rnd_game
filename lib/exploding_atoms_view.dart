@@ -4,12 +4,32 @@ import 'package:rnd_game/cell_view.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/exploding_atoms_repository.dart';
 import 'package:rnd_game/exploding_atoms_stream_provider.dart';
+import 'package:rnd_game/shared_preferences_repository.dart';
 
-class ExplodingAtomsView extends ConsumerWidget {
+class ExplodingAtomsView extends ConsumerStatefulWidget {
   const ExplodingAtomsView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ExplodingAtomsView> createState() => _ExplodingAtomsViewState();
+}
+
+class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
+  late final ExplodingAtoms explodingAtoms;
+  late final String playerId;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final data = await SharedPreferencesRepository.getUid();
+      setState(() {
+        playerId = data ?? '';
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final explodingAtomsAsync = ref.watch(explodingAtomsStreamProvider);
 
     return MaterialApp(

@@ -89,7 +89,13 @@ class ExplodingAtoms extends Equatable {
 
     cell.atomCount++;
 
+    print(lastPlayerId);
+    if (cell.playerId == null) {
+      cell.playerId = lastPlayerId;
+    }
+
     if (cell.atomCount == getMaxValue(x, y)) {
+      cell.playerId = null;
       return explode(x, y);
     }
 
@@ -111,13 +117,14 @@ class ExplodingAtoms extends Equatable {
   ExplodingAtoms explode(int x, int y) {
     Cell cell = grid[x * cols + y];
     cell.atomCount = 0;
-    cell.playerId = null;
+
+    //cell.playerId = null;
 
     List<Cell> neighbors = getNeighbor(x, y);
 
     for (Cell neighbor in neighbors) {
       neighbor.atomCount++;
-      neighbor.playerId = cell.playerId;
+      neighbor.playerId = lastPlayerId;
 
       if (neighbor.atomCount == getMaxValue(neighbor.x, neighbor.y)) {
         explode(neighbor.x, neighbor.y);
@@ -156,6 +163,6 @@ class ExplodingAtoms extends Equatable {
     }),
     rows: 8,
     cols: 8,
-    lastPlayerId: 'player1',
+    lastPlayerId: '',
   );
 }
