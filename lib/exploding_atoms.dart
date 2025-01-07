@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:equatable/equatable.dart';
 import 'package:rnd_game/cell.dart';
 
-import 'dart:developer' as dev;
-
 class ExplodingAtoms extends Equatable {
   final String id;
   final List<Cell> grid;
