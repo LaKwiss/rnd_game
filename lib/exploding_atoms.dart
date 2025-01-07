@@ -119,7 +119,7 @@ class ExplodingAtoms extends Equatable {
       neighbor.atomCount++;
       neighbor.playerId = cell.playerId;
 
-      if (neighbor.atomCount == getMaxValue(x, y)) {
+      if (neighbor.atomCount == getMaxValue(neighbor.x, neighbor.y)) {
         explode(neighbor.x, neighbor.y);
       }
     }
