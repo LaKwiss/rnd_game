@@ -39,8 +39,8 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
             child: explodingAtomsAsync.when(
               loading: () => const CircularProgressIndicator(),
               error: (error, stack) => Text('Error: $error'),
+              // Dans ExplodingAtomsView, modifie la partie data du StreamBuilder
               data: (explodingAtomsList) {
-                // Prendre le premier jeu ou créer un nouveau si la liste est vide
                 final explodingAtoms = explodingAtomsList.isEmpty
                     ? ExplodingAtoms.createEmpty(
                         id: playerId + DateTime.now().toString())
@@ -53,8 +53,18 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
                         children: [
                           for (int j = 0; j < 8; j++)
                             CellView(
-                              explodingAtoms.grid[i * 8 + j],
-                              () async {
+                              cell: explodingAtoms.grid[i * 8 + j],
+                              lastPlayerId: explodingAtoms.lastPlayerId,
+                              onTap: () async {
+                                final currentId =
+                                    await SharedPreferencesRepository.getUid();
+                                final cell = explodingAtoms.grid[i * 8 + j];
+
+                                if (cell.atomCount > 0 &&
+                                    cell.playerId != currentId) {
+                                  return; // Ignorer le tap si on ne peut pas jouer
+                                }
+
                                 final copy = await explodingAtoms.addAtom(i, j);
                                 await ExplodingAtomsRepository
                                     .sendExplodingAtoms(copy);
@@ -70,10 +80,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            await ExplodingAtomsRepository.sendExplodingAtoms(
-              ExplodingAtoms.createEmpty(
-                  id: playerId + DateTime.now().toString()),
-            );
+            await ExplodingAtomsRepository.resetGame(playerId);
           },
           child: const Icon(Icons.refresh),
         ),
