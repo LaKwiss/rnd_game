@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rnd_game/auth_repository.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
 
 class DisplayNameScreen extends ConsumerStatefulWidget {
   const DisplayNameScreen({super.key});

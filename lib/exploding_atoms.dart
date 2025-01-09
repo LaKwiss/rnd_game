@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:rnd_game/auth_repository.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:rnd_game/cell.dart';
 
 enum GameStatus {
