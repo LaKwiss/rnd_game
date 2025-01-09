@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rnd_game/cell.dart';
+import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/shared_preferences_repository.dart';
 
 class CellView extends ConsumerStatefulWidget {
   const CellView({
     required this.cell,
     required this.onTap,
-    required this.lastPlayerId,
+    required this.game,
     super.key,
   });
 
   final Cell cell;
   final VoidCallback onTap;
-  final String lastPlayerId;
+  final ExplodingAtoms game;
 
   @override
   ConsumerState<CellView> createState() => _CellViewState();
@@ -28,16 +29,6 @@ class _CellViewState extends ConsumerState<CellView> {
     _initializePlayer();
   }
 
-  @override
-  void didUpdateWidget(CellView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Vérifie si les props pertinentes ont changé
-    if (oldWidget.cell != widget.cell ||
-        oldWidget.lastPlayerId != widget.lastPlayerId) {
-      _initializePlayer();
-    }
-  }
-
   Future<void> _initializePlayer() async {
     final playerId = await SharedPreferencesRepository.getUid();
     if (!mounted) return;
@@ -47,21 +38,17 @@ class _CellViewState extends ConsumerState<CellView> {
     });
   }
 
-  bool get isCurrentPlayer => widget.cell.playerId == currentPlayerId;
+  bool _canPlayerPlay() {
+    // Si le jeu n'est pas en cours, personne ne peut jouer
+    if (!widget.game.isInProgress) return false;
 
-  bool get canPlay {
-    if (currentPlayerId == null) return false;
+    // Si ce n'est pas le tour du joueur, il ne peut pas jouer
+    if (currentPlayerId != widget.game.nextPlayerId) return false;
 
-    // Si c'est le premier coup (lastPlayerId vide)
-    if (widget.lastPlayerId.isEmpty) return true;
-
-    // Si ce n'est pas notre tour (le dernier joueur est nous)
-    if (widget.lastPlayerId == currentPlayerId) return false;
-
-    // Si la cellule est vide, on peut jouer
+    // Si la cellule est vide, le joueur peut jouer
     if (widget.cell.atomCount == 0) return true;
 
-    // Si la cellule appartient au joueur courant
+    // Sinon, il faut que la cellule appartienne au joueur
     return widget.cell.playerId == currentPlayerId;
   }
 
@@ -75,12 +62,12 @@ class _CellViewState extends ConsumerState<CellView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Player ID: ${widget.cell.playerId}'),
-            Text('Last Player ID: ${widget.lastPlayerId}'),
             Text('Current Player ID: $currentPlayerId'),
+            Text('Next Player ID: ${widget.game.nextPlayerId}'),
+            Text('Game Status: ${widget.game.status}'),
             Text('Atom Count: ${widget.cell.atomCount}'),
             Text('Position: (${widget.cell.x}, ${widget.cell.y})'),
-            Text('Can Play: $canPlay'),
-            Text('Is Current Player: $isCurrentPlayer'),
+            Text('Can Play: ${_canPlayerPlay()}'),
           ],
         ),
         actions: [
@@ -91,6 +78,45 @@ class _CellViewState extends ConsumerState<CellView> {
         ],
       ),
     );
+  }
+
+  Color _getCellColor() {
+    if (!widget.game.isInProgress) {
+      return Colors.grey.shade300;
+    }
+
+    if (_canPlayerPlay()) {
+      return Colors.blue.shade400;
+    }
+
+    return Colors.grey.shade400;
+  }
+
+  Color _getAtomColor() {
+    // Si la cellule n'appartient à personne, gris
+    if (widget.cell.playerId == null) {
+      return Colors.grey.shade600;
+    }
+
+    // Si la cellule appartient au joueur courant, noir
+    if (widget.cell.playerId == currentPlayerId) {
+      return Colors.black;
+    }
+
+    // Assigner une couleur unique par joueur
+    final playerIndex = widget.game.playersIds.indexOf(widget.cell.playerId!);
+    switch (playerIndex) {
+      case 0:
+        return Colors.red;
+      case 1:
+        return Colors.blue;
+      case 2:
+        return Colors.green;
+      case 3:
+        return Colors.yellow;
+      default:
+        return Colors.purple;
+    }
   }
 
   Widget _buildAtoms() {
@@ -157,29 +183,50 @@ class _CellViewState extends ConsumerState<CellView> {
   }
 
   Widget _buildDot() {
-    final color = isCurrentPlayer ? Colors.black : Colors.red;
     return Container(
       width: 16,
       height: 16,
       decoration: BoxDecoration(
-        color: color,
+        color: _getAtomColor(),
         shape: BoxShape.circle,
+        // Ajoute un effet de brillance si c'est le tour du joueur
+        boxShadow: widget.game.nextPlayerId == widget.cell.playerId
+            ? [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.5),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final canPlay = _canPlayerPlay();
+
     return GestureDetector(
       onTap: canPlay ? widget.onTap : null,
       onLongPress: _showCellInfo,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.blueAccent,
+          color: _getCellColor(),
           border: Border.all(
-            color: canPlay ? Colors.black : Colors.grey,
+            color: canPlay ? Colors.black : Colors.grey.shade500,
             width: 1,
           ),
+          // Ajoute un effet de surbrillance si c'est jouable
+          boxShadow: canPlay
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.3),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
         width: 48,
         height: 48,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rnd_game/auth_repository.dart';
 import 'package:rnd_game/shared_preferences_repository.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -27,7 +26,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void handleNextStep() {
     SharedPreferencesRepository.setUid(FirebaseAuth.instance.currentUser!.uid);
-    Navigator.of(context).pushReplacementNamed('/game');
+    Navigator.of(context).pushReplacementNamed('/lobby');
   }
 
   Future<void> _submit() async {
@@ -39,24 +38,31 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
+      UserCredential userCredential;
       if (_isRegister) {
-        final data = await AuthRepository.register(
-          _emailController.text.trim(),
-          _passwordController.text,
+        userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
         );
-        if (data) {
-          handleNextStep();
+      } else {
+        userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+      }
+
+      // À ce stade, on est sûr d'avoir un uid valide
+      if (userCredential.user?.uid != null) {
+        await SharedPreferencesRepository.setUid(userCredential.user!.uid);
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/lobby');
         }
       } else {
-        final data = await AuthRepository.login(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-        if (data) {
-          handleNextStep();
-        }
+        setState(() {
+          _errorMessage = 'Erreur d\'authentification';
+        });
       }
-      // On success, the AuthStateChanges stream will handle navigation
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = _getErrorMessage(e.code);
@@ -66,9 +72,11 @@ class _AuthScreenState extends State<AuthScreen> {
         _errorMessage = 'Une erreur inattendue est survenue';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
