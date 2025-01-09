@@ -26,4 +26,13 @@ class AuthRepository {
   static FutureOr<String?> getUid() async {
     return _auth.currentUser?.uid;
   }
+
+  static FutureOr<String?> getCurrentUsername() async {
+    return _auth.currentUser?.displayName;
+  }
+
+  static Future<void> updateDisplayName(String displayName) async {
+    await _auth.currentUser?.updateDisplayName(displayName);
+    await _auth.currentUser?.reload();
+  }
 }

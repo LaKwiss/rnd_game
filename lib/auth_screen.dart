@@ -191,7 +191,6 @@ class _AuthScreenState extends State<AuthScreen> {
                     prefixIcon: const Icon(Icons.email),
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                   ),
-                  keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   validator: _validateEmail,
                   enabled: !_isLoading,

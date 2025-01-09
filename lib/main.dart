@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:rnd_game/auth_screen.dart';
+import 'package:rnd_game/cached_user_repository.dart';
 import 'package:rnd_game/lobby_screen.dart';
 import 'package:rnd_game/exploding_atoms_view.dart';
 import 'package:rnd_game/firebase_options.dart';
+import 'package:rnd_game/temp/display_name_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await CachedUserRepository.init();
   runApp(
     const ProviderScope(
       child: MainApp(),
@@ -56,6 +59,11 @@ class MainApp extends ConsumerWidget {
               builder: (context) => const LobbyScreen(),
               settings: settings,
             );
+          case '/display-name':
+            return MaterialPageRoute(
+              builder: (context) => const DisplayNameScreen(),
+              settings: settings,
+            );
           default:
             return MaterialPageRoute(
               builder: (context) => const Scaffold(
@@ -81,5 +89,9 @@ extension NavigationExtension on BuildContext {
 
   void navigateToLobby() {
     Navigator.pushReplacementNamed(this, '/lobby');
+  }
+
+  void navigateToDisplayNameCreation() {
+    Navigator.pushReplacementNamed(this, '/display-name');
   }
 }

@@ -32,11 +32,12 @@ class CachedUserRepository {
 
   /// Récupère le nom d'affichage d'un utilisateur, d'abord depuis le cache,
   /// puis depuis Firestore si nécessaire.
-  static Future<String> getDisplayName(String uid) async {
+  static Future<String?> getDisplayName(String uid) async {
     try {
       // Vérification du cache
       final cached = _box.get(uid);
       if (cached != null && !cached.isExpired) {
+        log(cached.displayName);
         return cached.displayName;
       }
 
@@ -44,7 +45,7 @@ class CachedUserRepository {
       return await _fetchAndCacheUser(uid);
     } catch (e) {
       log('Erreur lors de la récupération du displayName: $e');
-      return 'Joueur Anonyme';
+      return null;
     }
   }
 
@@ -93,7 +94,25 @@ class CachedUserRepository {
         ),
       );
     } catch (e) {
-      log('Erreur lors de la mise à jour du displayName: $e');
+      if (e is FirebaseException && e.code == 'not-found') {
+        // Si l'utilisateur n'existe pas, on le crée
+        await _usersCollection.doc(uid).set({
+          'displayName': newDisplayName,
+          'createdAt': FieldValue.serverTimestamp(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
+
+        // Mise à jour du cache
+        await _box.put(
+          uid,
+          CachedUser(
+            displayName: newDisplayName,
+            timestamp: DateTime.now(),
+          ),
+        );
+
+        return;
+      }
       rethrow;
     }
   }

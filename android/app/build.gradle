@@ -1,42 +1,36 @@
 plugins {
     id "com.android.application"
-    // START: FlutterFire Configuration
-    id 'com.google.gms.google-services'
-    // END: FlutterFire Configuration
+    id "com.google.gms.google-services" // Configuration FlutterFire
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id "dev.flutter.flutter-gradle-plugin"
+    id "dev.flutter.flutter-gradle-plugin" // Flutter Gradle Plugin
 }
 
 android {
     namespace = "com.example.rnd_game"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 33 // Assurez-vous que cette version est conforme à vos dépendances
+
+    ndkVersion = "25.1.8937393" // Exemple de version NDK, ajustez selon votre configuration
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = "17" // Compatible avec Java 17
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.rnd_game"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        minSdkVersion = 23 // Minimum requis pour Firebase Auth
+        targetSdkVersion = 33 // Ajustez en fonction de vos besoins
+        versionCode = 1
+        versionName = "1.0"
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            minifyEnabled false // Ajustez selon vos besoins de réduction
             signingConfig = signingConfigs.debug
         }
     }
@@ -44,4 +38,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation "androidx.core:core-ktx:1.9.0" // Exemple de dépendance courante
+    implementation "com.google.firebase:firebase-auth:22.0.0" // Exemple Firebase Auth
+    implementation "com.google.firebase:firebase-database:20.1.0" // Exemple Realtime Database
 }

@@ -47,18 +47,29 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Status du jeu
-          Text(
-            switch (game.status) {
-              GameStatus.waitingForPlayers => 'En attente de joueurs...',
-              GameStatus.ready => 'Prêt à démarrer',
-              GameStatus.inProgress => currentPlayerTurn
-                  ? '🎯 C\'est à vous de jouer !'
-                  : '⏳ Tour de l\'adversaire',
-              GameStatus.finished => '🏆 Partie terminée',
-            },
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          if (game.status == GameStatus.inProgress)
+            FutureBuilder<String>(
+              future: currentPlayerTurn
+                  ? Future.value('🎯 C\'est à vous de jouer !')
+                  : CachedUserRepository.getDisplayName(game.nextPlayerId)
+                      .then((name) => '⏳ Tour de ${name ?? 'Inconnu'}'),
+              builder: (context, snapshot) {
+                return Text(
+                  snapshot.data ?? 'Chargement...',
+                  style: Theme.of(context).textTheme.titleLarge,
+                );
+              },
+            )
+          else
+            Text(
+              switch (game.status) {
+                GameStatus.waitingForPlayers => 'En attente de joueurs...',
+                GameStatus.ready => 'Prêt à démarrer',
+                GameStatus.finished => '🏆 Partie terminée',
+                GameStatus.inProgress => 'En cours...',
+              },
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           const SizedBox(height: 8),
 
           // Liste des joueurs
@@ -69,7 +80,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
               final isNextPlayer = playerId == game.nextPlayerId;
 
               return Chip(
-                label: FutureBuilder<String>(
+                label: FutureBuilder<String?>(
                   future: CachedUserRepository.getDisplayName(playerId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {

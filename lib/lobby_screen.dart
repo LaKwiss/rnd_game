@@ -1,7 +1,11 @@
 import 'dart:developer';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:rnd_game/auth_repository.dart';
+import 'package:rnd_game/cached_user_repository.dart';
 import 'package:rnd_game/current_player_provider.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/exploding_atoms_stream_provider.dart';
@@ -9,11 +13,33 @@ import 'package:rnd_game/lobby_controller.dart';
 import 'package:rnd_game/main.dart';
 
 // Le widget principal du lobby qui gère l'orchestration des différents états
-class LobbyScreen extends ConsumerWidget {
+class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LobbyScreen> createState() => _LobbyScreenState();
+}
+
+class _LobbyScreenState extends ConsumerState<LobbyScreen> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final String? username = await AuthRepository.getCurrentUsername();
+      if (username == null || username.isEmpty) {
+        context.navigateToDisplayNameCreation();
+      } else {
+        final uid = await AuthRepository.getUid();
+        if (uid != null) {
+          CachedUserRepository.updateDisplayName(uid, username);
+        }
+      }
+      log('Username: $username');
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // On observe les trois providers principaux
     final playerAsync = ref.watch(currentPlayerProvider);
     final gamesAsync = ref.watch(explodingAtomsStreamProvider);
@@ -86,11 +112,16 @@ class _LoadingScreen extends StatelessWidget {
 }
 
 // Écran d'erreur avec possibilité de retour
-class _ErrorScreen extends StatelessWidget {
+class _ErrorScreen extends StatefulWidget {
   final Object error;
 
   const _ErrorScreen({required this.error});
 
+  @override
+  State<_ErrorScreen> createState() => _ErrorScreenState();
+}
+
+class _ErrorScreenState extends State<_ErrorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -101,7 +132,7 @@ class _ErrorScreen extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: Colors.red),
             const SizedBox(height: 16),
             Text(
-              'Une erreur est survenue:\n$error',
+              'Une erreur est survenue:\n${widget.error}',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.red[700]),
             ),
@@ -143,6 +174,15 @@ class _LobbyContent extends ConsumerWidget {
               Navigator.of(context).pushReplacementNamed('/');
             },
           ),
+          IconButton(
+            onPressed: () async {
+              CachedUserRepository.clearCache();
+            },
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedClean,
+              color: Colors.black,
+            ),
+          )
         ],
       ),
       body: Stack(
@@ -269,13 +309,8 @@ class _GameCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    late bool isCreator;
-    if (game.playersIds.isEmpty) {
-      isCreator = false;
-    } else {
-      isCreator = game.playersIds.first == playerId;
-    }
-
+    final isCreator =
+        game.playersIds.isNotEmpty && game.playersIds.first == playerId;
     final hasJoined = game.playersIds.contains(playerId);
 
     final playerStatus = switch ((isCreator, hasJoined)) {
@@ -291,81 +326,114 @@ class _GameCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  playerStatus,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                _StatusChip(status: game.status),
-              ],
-            ),
+            _buildHeader(context, playerStatus),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(Icons.people, size: 20, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                Text(
-                  '${game.playersIds.length}/${game.maxPlayers} joueurs',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              ],
-            ),
+            _buildPlayerCount(),
             const SizedBox(height: 16),
-            if (!game.isInProgress) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (isCreator && game.status == GameStatus.ready)
-                    ElevatedButton(
-                      onPressed: () async {
-                        await ref
-                            .read(lobbyControllerProvider.notifier)
-                            .startGame(game);
-                        if (context.mounted) {
-                          context.navigateToGame(game.id);
-                        }
-                      },
-                      child: const Text('Démarrer'),
-                    )
-                  else if (!hasJoined && game.canJoin)
-                    ElevatedButton(
-                      onPressed: () => ref
-                          .read(lobbyControllerProvider.notifier)
-                          .joinGame(game.id, playerId),
-                      child: const Text('Rejoindre'),
-                    ),
-                  if (hasJoined && !isCreator) ...[
-                    const SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: () => ref
-                          .read(lobbyControllerProvider.notifier)
-                          .leaveGame(game.id, playerId),
-                      child: const Text('Quitter'),
-                    ),
-                  ],
-                  if (isCreator) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () => ref
-                          .read(lobbyControllerProvider.notifier)
-                          .deleteGame(game.id),
-                      icon: const Icon(Icons.delete),
-                      color: Colors.red,
-                    ),
-                  ],
-                ],
-              ),
-            ] else if (hasJoined)
-              ElevatedButton.icon(
-                onPressed: () => context.navigateToGame(game.id),
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Reprendre la partie'),
-              ),
+            _buildActionButtons(context, ref, isCreator, hasJoined),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, String playerStatus) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          playerStatus,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        _StatusChip(status: game.status),
+      ],
+    );
+  }
+
+  Widget _buildPlayerCount() {
+    return Row(
+      children: [
+        Icon(Icons.people, size: 20, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Text(
+          '${game.playersIds.length}/${game.maxPlayers} joueurs',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(
+      BuildContext context, WidgetRef ref, bool isCreator, bool hasJoined) {
+    if (game.isInProgress) {
+      return _buildInProgressButton(context);
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (isCreator && game.status == GameStatus.ready)
+          _buildStartButton(context, ref),
+        if (!hasJoined && game.canJoin) _buildJoinButton(ref),
+        if (hasJoined && !isCreator) ...[
+          const SizedBox(width: 8),
+          _buildLeaveButton(ref),
+        ],
+        if (isCreator) ...[
+          const SizedBox(width: 8),
+          _buildDeleteButton(ref),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStartButton(BuildContext context, WidgetRef ref) {
+    return ElevatedButton(
+      onPressed: () async {
+        await ref.read(lobbyControllerProvider.notifier).startGame(game);
+        if (context.mounted) {
+          context.navigateToGame(game.id);
+        }
+      },
+      child: const Text('Démarrer'),
+    );
+  }
+
+  Widget _buildJoinButton(WidgetRef ref) {
+    return ElevatedButton(
+      onPressed: () => ref
+          .read(lobbyControllerProvider.notifier)
+          .joinGame(game.id, playerId),
+      child: const Text('Rejoindre'),
+    );
+  }
+
+  Widget _buildLeaveButton(WidgetRef ref) {
+    return OutlinedButton(
+      onPressed: () => ref
+          .read(lobbyControllerProvider.notifier)
+          .leaveGame(game.id, playerId),
+      child: const Text('Quitter'),
+    );
+  }
+
+  Widget _buildDeleteButton(WidgetRef ref) {
+    return IconButton(
+      onPressed: () =>
+          ref.read(lobbyControllerProvider.notifier).deleteGame(game.id),
+      icon: const Icon(Icons.delete),
+      color: Colors.red,
+    );
+  }
+
+  Widget _buildInProgressButton(BuildContext context) {
+    final hasJoined = game.playersIds.contains(playerId);
+    final buttonText = hasJoined ? 'Reprendre' : 'Observer';
+
+    return ElevatedButton.icon(
+      onPressed: () => context.navigateToGame(game.id),
+      icon: const Icon(Icons.play_arrow),
+      label: Text(buttonText),
     );
   }
 }
