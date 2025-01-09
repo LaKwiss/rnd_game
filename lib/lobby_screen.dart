@@ -278,7 +278,6 @@ class _GameCard extends ConsumerWidget {
 
     final hasJoined = game.playersIds.contains(playerId);
 
-    // En utilisant le pattern matching de Dart 3, on peut rendre le code plus lisible
     final playerStatus = switch ((isCreator, hasJoined)) {
       (true, _) => 'Votre partie',
       (false, true) => 'Partie #${game.id.substring(0, 6)} (Rejoint)',

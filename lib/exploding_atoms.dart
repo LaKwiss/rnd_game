@@ -237,8 +237,9 @@ class ExplodingAtoms extends Equatable {
   }
 
   bool hasPlayerWon(String playerId) {
-    return grid
-        .every((cell) => cell.atomCount == 0 || cell.playerId == playerId);
+    // return grid
+    //     .every((cell) => cell.atomCount == 0 || cell.playerId == playerId);
+    return false;
   }
 
   // Processus d'explosion récursif avec accumulation des états
