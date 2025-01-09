@@ -1,10 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rnd_game/cached_user_repository.dart';
 import 'package:rnd_game/cell_view.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/exploding_atoms_repository.dart';
 import 'package:rnd_game/exploding_atoms_stream_provider.dart';
+import 'package:rnd_game/main.dart';
 import 'package:rnd_game/shared_preferences_repository.dart';
 
 class ExplodingAtomsView extends ConsumerStatefulWidget {
@@ -67,10 +69,19 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
               final isNextPlayer = playerId == game.nextPlayerId;
 
               return Chip(
-                label: Text(
-                  isCurrentPlayer
-                      ? 'Vous'
-                      : 'Joueur ${game.playersIds.indexOf(playerId) + 1}',
+                label: FutureBuilder<String>(
+                  future: CachedUserRepository.getDisplayName(playerId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text('Chargement...');
+                    } else if (snapshot.hasError) {
+                      return const Text('Erreur');
+                    } else {
+                      return Text(
+                        isCurrentPlayer ? 'Vous' : snapshot.data ?? 'Inconnu',
+                      );
+                    }
+                  },
                 ),
                 backgroundColor: isNextPlayer ? Colors.blue.shade100 : null,
                 side: isCurrentPlayer
@@ -100,7 +111,12 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.navigateToLobby(),
+        ),
         title: const Text('Exploding Atoms'),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
