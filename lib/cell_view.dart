@@ -193,7 +193,7 @@ class _CellViewState extends ConsumerState<CellView> {
         boxShadow: widget.game.nextPlayerId == widget.cell.playerId
             ? [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withAlpha((0.5 * 255).round()),
                   blurRadius: 4,
                   spreadRadius: 1,
                 ),
@@ -221,7 +221,7 @@ class _CellViewState extends ConsumerState<CellView> {
           boxShadow: canPlay
               ? [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.3),
+                    color: Colors.blue.withAlpha((0.3 * 255).round()),
                     blurRadius: 4,
                     spreadRadius: 1,
                   ),

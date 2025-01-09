@@ -167,7 +167,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withAlpha((0.1 * 255).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
