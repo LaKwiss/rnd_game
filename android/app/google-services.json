@@ -118,7 +118,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:489153684515:android:a96b9b8fe4cf52e4fe3d96",
         "android_client_info": {
-          "package_name": "com.rnd_game.app"
+          "package_name": "com.example.rnd_game.app"
         }
       },
       "oauth_client": [
