@@ -27,7 +27,7 @@ class LandingPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                const Spacer(flex: 2),
+                const Spacer(flex: 3),
                 // Conteneur du titre avec fond bleu
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -35,7 +35,7 @@ class LandingPage extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue[700],
+                    color: Color.fromARGB(255, 0, 0, 255),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -60,14 +60,15 @@ class LandingPage extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () => context.navigateToRegister(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[700],
+                          backgroundColor: Color.fromARGB(255, 0, 0, 255),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text('REGISTER'),
+                        child: const Text('REGISTER',
+                            style: TextStyle(fontSize: 20)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -76,13 +77,17 @@ class LandingPage extends StatelessWidget {
                         onPressed: () => context.navigateToLogin(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: Colors.blue[700],
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          foregroundColor: Color.fromARGB(255, 0, 0, 255),
+                          padding: const EdgeInsets.symmetric(vertical: 24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                                width: 2,
+                                color: Color.fromARGB(255, 0, 0, 255)),
                           ),
                         ),
-                        child: const Text('LOGIN'),
+                        child:
+                            const Text('LOGIN', style: TextStyle(fontSize: 20)),
                       ),
                     ),
                   ],

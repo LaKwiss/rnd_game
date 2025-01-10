@@ -112,10 +112,10 @@ extension NavigationExtension on BuildContext {
   }
 
   void navigateToLogin() {
-    Navigator.pushReplacementNamed(this, '/login');
+    Navigator.pushNamed(this, '/login');
   }
 
   void navigateToRegister() {
-    Navigator.pushReplacementNamed(this, '/register');
+    Navigator.pushNamed(this, '/register');
   }
 }
