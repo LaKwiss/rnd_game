@@ -277,7 +277,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 8),
                             MoberlyTextField(
                               controller: _emailController,
-                              label: '',
+                              label: 'Email',
                               icon: Icons.email,
                               validator: AuthRepository.validateEmail,
                             ),
@@ -291,7 +291,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               const SizedBox(height: 8),
                               MoberlyTextField(
                                 controller: _displayNameController,
-                                label: '',
+                                label: 'Username',
                                 icon: Icons.person,
                                 validator: _validateDisplayName,
                               ),
@@ -302,7 +302,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 8),
                             MoberlyTextField(
                               controller: _passwordController,
-                              label: '',
+                              label: 'Password',
                               icon: Icons.lock,
                               validator: _validatePassword,
                               isPassword: true,

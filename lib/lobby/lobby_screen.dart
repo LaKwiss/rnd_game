@@ -227,16 +227,61 @@ class _LobbyContent extends ConsumerWidget {
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: AppTheme.primaryColor,
-            title: Text('Exploding Atoms', style: AppTheme.titleStyle),
+            leading: TitleButton(),
+            title: Text(
+              'Exploding Atoms',
+              style: AppTheme.titleStyle,
+            ),
             automaticallyImplyLeading: false,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.logout, color: AppTheme.white),
-                onPressed: () async {
-                  Navigator.of(context).pushReplacementNamed('/');
-                },
-              ),
-            ],
+            // actions: [
+            //   IconButton(
+            //     icon: const Icon(Icons.logout, color: AppTheme.white),
+            //     onPressed: () async {
+            //       Navigator.of(context).pushReplacementNamed('/');
+            //     },
+            //   ),
+            // ],
+          ),
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Exploding Atoms',
+                        style: AppTheme.titleStyle.copyWith(
+                          color: AppTheme.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ListTile(
+                  title: const Text('Statistiques'),
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/statistics');
+                  },
+                ),
+                ListTile(
+                  title: const Text('Paramètres'),
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/settings');
+                  },
+                ),
+                ListTile(
+                  title: const Text('Déconnexion'),
+                  onTap: () async {
+                    Navigator.of(context).pushReplacementNamed('/');
+                  },
+                ),
+              ],
+            ),
           ),
           body: Stack(
             children: [
@@ -277,6 +322,25 @@ class _LobbyContent extends ConsumerWidget {
                   ),
                 ),
         ),
+      ),
+    );
+  }
+}
+
+class TitleButton extends StatelessWidget {
+  const TitleButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        Scaffold.of(context).openDrawer();
+      },
+      icon: Icon(
+        Icons.menu,
+        color: Colors.white,
       ),
     );
   }

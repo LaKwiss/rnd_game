@@ -44,6 +44,8 @@ class _MoberlyTextFieldState extends State<MoberlyTextField> {
         controller: widget.controller,
         decoration: InputDecoration(
           labelText: widget.label,
+          labelStyle: const TextStyle(color: AppTheme.primaryColor),
+          hintStyle: const TextStyle(color: AppTheme.primaryColor),
           prefixIcon: Icon(widget.icon, color: AppTheme.primaryColor),
           suffixIcon: widget.isPassword
               ? IconButton(
@@ -79,7 +81,7 @@ class _MoberlyTextFieldState extends State<MoberlyTextField> {
               width: 2,
             ),
           ),
-          floatingLabelBehavior: FloatingLabelBehavior.always,
+          floatingLabelBehavior: FloatingLabelBehavior.never,
         ),
         obscureText: _obscureText,
         validator: widget.validator,
