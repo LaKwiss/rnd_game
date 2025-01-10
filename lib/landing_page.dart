@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rnd_game/main.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -24,14 +25,14 @@ class LandingPage extends StatelessWidget {
           children: [
             TextButton(
               style: registerButton,
-              onPressed: () => Navigator.of(context).pushNamed('/register'),
+              onPressed: () => context.navigateToRegister(),
               child: Text(
                 'REGISTER',
                 style: registerButtonText,
               ),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pushNamed('/login'),
+              onPressed: () => context.navigateToLogin(),
               child: Text('LOGIN'),
             ),
           ],

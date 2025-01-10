@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:rnd_game/auth/auth_screen.dart';
 import 'package:rnd_game/cached_user_repository.dart';
+import 'package:rnd_game/landing_page.dart';
 import 'package:rnd_game/lobby/lobby_screen.dart';
 import 'package:rnd_game/exploding_atoms_view.dart';
 import 'package:rnd_game/firebase_options.dart';
@@ -51,7 +52,7 @@ class MainApp extends ConsumerWidget {
         switch (settings.name) {
           case '/':
             return MaterialPageRoute(
-              builder: (context) => const AuthScreen(),
+              builder: (context) => const LandingPage(),
               settings: settings,
             );
           case '/lobby':
@@ -62,6 +63,17 @@ class MainApp extends ConsumerWidget {
           case '/display-name':
             return MaterialPageRoute(
               builder: (context) => const DisplayNameScreen(),
+              settings: settings,
+            );
+          case '/login':
+            return MaterialPageRoute(
+              builder: (context) => AuthScreen(authMode: AuthMode.signIn),
+              settings: settings,
+            );
+
+          case '/register':
+            return MaterialPageRoute(
+              builder: (context) => AuthScreen(authMode: AuthMode.signUp),
               settings: settings,
             );
           default:
@@ -93,5 +105,17 @@ extension NavigationExtension on BuildContext {
 
   void navigateToDisplayNameCreation() {
     Navigator.pushReplacementNamed(this, '/display-name');
+  }
+
+  void navigateToLandingPage() {
+    Navigator.pushReplacementNamed(this, '/');
+  }
+
+  void navigateToLogin() {
+    Navigator.pushReplacementNamed(this, '/login');
+  }
+
+  void navigateToRegister() {
+    Navigator.pushReplacementNamed(this, '/register');
   }
 }
