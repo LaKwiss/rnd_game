@@ -35,4 +35,15 @@ class AuthRepository {
     await _auth.currentUser?.updateDisplayName(displayName);
     await _auth.currentUser?.reload();
   }
+
+  static String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Veuillez entrer votre email';
+    }
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Veuillez entrer un email valide';
+    }
+    return null;
+  }
 }

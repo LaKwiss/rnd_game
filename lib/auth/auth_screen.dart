@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rnd_game/app_theme.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
+import 'package:rnd_game/main.dart';
 import 'package:rnd_game/shared_preferences_repository.dart';
+import 'package:rnd_game/widgets/error_message.dart';
+import 'package:rnd_game/widgets/moberly_text_field.dart';
 
-// Enum pour gérer les différents états d'authentification
+// Enumération des modes d'authentification
 enum AuthMode {
   signIn,
   signUp;
@@ -27,27 +32,29 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Contrôleurs pour les champs de formulaire
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _displayNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _displayNameController = TextEditingController();
 
-  // États du formulaire
-  late var _authMode;
-  var _isLoading = false;
+  late AuthMode _authMode;
+  bool _isLoading = false;
   String? _errorMessage;
 
-  // Validateurs pour les champs
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Veuillez entrer votre email';
-    }
-    if (!value.contains('@') || !value.contains('.')) {
-      return 'Veuillez entrer un email valide';
-    }
-    return null;
+  @override
+  void initState() {
+    super.initState();
+    _authMode = widget.authMode;
   }
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _displayNameController.dispose();
+    super.dispose();
+  }
+
+  // Méthodes de validation
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Veuillez entrer votre mot de passe';
@@ -70,21 +77,26 @@ class _AuthScreenState extends State<AuthScreen> {
     return null;
   }
 
-  // Gestion des erreurs Firebase
+  // Gestion des messages d'erreur
   String _getErrorMessage(String code) {
-    return switch (code) {
-      'user-not-found' => 'Aucun utilisateur trouvé avec cet email',
-      'wrong-password' => 'Mot de passe incorrect',
-      'email-already-in-use' => 'Cet email est déjà utilisé',
-      'invalid-email' => 'Email invalide',
-      'weak-password' => 'Le mot de passe doit contenir au moins 6 caractères',
-      _ => 'Une erreur est survenue: $code',
-    };
+    switch (code) {
+      case 'user-not-found':
+        return 'Aucun utilisateur trouvé avec cet email';
+      case 'wrong-password':
+        return 'Mot de passe incorrect';
+      case 'email-already-in-use':
+        return 'Cet email est déjà utilisé';
+      case 'invalid-email':
+        return 'Email invalide';
+      case 'weak-password':
+        return 'Le mot de passe doit contenir au moins 6 caractères';
+      default:
+        return 'Une erreur est survenue: $code';
+    }
   }
 
-  // Soumission du formulaire
+  // Méthode de soumission du formulaire
   Future<void> _submit() async {
-    // Validation du formulaire
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -97,21 +109,17 @@ class _AuthScreenState extends State<AuthScreen> {
       UserCredential userCredential;
 
       if (_authMode == AuthMode.signUp) {
-        // Création du compte
         userCredential = await auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
 
-        // Mise à jour du profil avec le nom d'utilisateur
         await userCredential.user?.updateDisplayName(
           _displayNameController.text.trim(),
         );
 
-        // Attendre que le displayName soit bien mis à jour
         await auth.currentUser?.reload();
       } else {
-        // Connexion
         userCredential = await auth.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -119,9 +127,7 @@ class _AuthScreenState extends State<AuthScreen> {
       }
 
       if (userCredential.user?.uid != null) {
-        // Sauvegarde de l'UID dans les préférences
         await SharedPreferencesRepository.setUid(userCredential.user!.uid);
-
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/lobby');
         }
@@ -147,128 +153,168 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  // Changement de mode (connexion/inscription)
-  void _switchAuthMode() {
-    setState(() {
-      _authMode =
-          _authMode == AuthMode.signIn ? AuthMode.signUp : AuthMode.signIn;
-      _errorMessage = null;
-    });
+  // Méthode pour changer le mode d'authentification
+  void _switchAuthMode() => _authMode == AuthMode.signIn
+      ? context.navigateToRegister()
+      : context.navigateToLogin();
+
+  // Widget pour le titre principal
+  Widget _buildTitle() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 16,
+        horizontal: 20,
+      ),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+      ),
+      child: Text(
+        _authMode.title.toUpperCase(),
+        style: AppTheme.titleStyle,
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 
-  @override
-  void initState() {
-    _authMode = widget.authMode;
-    super.initState();
+  // Widget pour le bouton principal
+  Widget _buildSubmitButton() {
+    return ElevatedButton(
+      onPressed: _isLoading ? null : _submit,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        ),
+      ),
+      child: _isLoading
+          ? const SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            )
+          : Text(
+              _authMode.submitButtonText.toUpperCase(),
+              style: AppTheme.buttonTextStyle,
+            ),
+    );
   }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _displayNameController.dispose();
-    super.dispose();
+  // Widget pour le bouton de changement de mode
+  Widget _buildSwitchModeButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.whiteTransparent,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        border: Border.all(
+          color: AppTheme.primaryColor,
+          width: 1,
+        ),
+      ),
+      child: TextButton(
+        onPressed: _isLoading ? null : _switchAuthMode,
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+          ),
+        ),
+        child: Text(
+          _authMode.switchButtonText.toUpperCase(),
+          style: AppTheme.switchButtonTextStyle,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Titre
-                Text(
-                  _authMode.title,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-
-                // Champ email
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.email),
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                  ),
-                  textInputAction: TextInputAction.next,
-                  validator: _validateEmail,
-                  enabled: !_isLoading,
-                ),
-                const SizedBox(height: 16),
-
-                // Champ displayName (uniquement en mode inscription)
-                if (_authMode == AuthMode.signUp) ...[
-                  TextFormField(
-                    controller: _displayNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Nom d\'utilisateur',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.person),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
+      // Utilisation d'un dégradé pour l'arrière-plan
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/arc_de_triomphe.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppTheme.padding),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildTitle(),
+                    const SizedBox(height: 32),
+                    // Container des champs de formulaire
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.whiteTransparent,
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadius),
+                        border: Border.all(
+                          color: Colors.blue.shade100,
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Champ Email
+                          Text('Email', style: AppTheme.labelStyle),
+                          const SizedBox(height: 8),
+                          MoberlyTextField(
+                            controller: _emailController,
+                            label: '',
+                            icon: Icons.email,
+                            validator: AuthRepository.validateEmail,
+                          ),
+                          const SizedBox(height: 16),
+                          // Champ Nom d'utilisateur (uniquement pour l'inscription)
+                          if (_authMode == AuthMode.signUp) ...[
+                            Text(
+                              'Nom d\'utilisateur',
+                              style: AppTheme.labelStyle,
+                            ),
+                            const SizedBox(height: 8),
+                            MoberlyTextField(
+                              controller: _displayNameController,
+                              label: '',
+                              icon: Icons.person,
+                              validator: _validateDisplayName,
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          // Champ Mot de passe
+                          Text('Mot de passe', style: AppTheme.labelStyle),
+                          const SizedBox(height: 8),
+                          MoberlyTextField(
+                            controller: _passwordController,
+                            label: '',
+                            icon: Icons.lock,
+                            validator: _validatePassword,
+                            isPassword: true,
+                          ),
+                        ],
+                      ),
                     ),
-                    textInputAction: TextInputAction.next,
-                    validator: _validateDisplayName,
-                    enabled: !_isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Champ mot de passe
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Mot de passe',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.lock),
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                  ),
-                  obscureText: true,
-                  validator: _validatePassword,
-                  enabled: !_isLoading,
+                    ErrorMessage(errorMessage: _errorMessage),
+                    const SizedBox(height: 24),
+                    _buildSubmitButton(),
+                    const SizedBox(height: 16),
+                    _buildSwitchModeButton(),
+                  ],
                 ),
-
-                // Message d'erreur
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    _errorMessage!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-
-                // Bouton de soumission
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _isLoading ? null : _submit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(_authMode.submitButtonText),
-                ),
-
-                // Bouton de changement de mode
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: _isLoading ? null : _switchAuthMode,
-                  child: Text(_authMode.switchButtonText),
-                ),
-              ],
+              ),
             ),
           ),
         ),
