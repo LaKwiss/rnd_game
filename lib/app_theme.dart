@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static const Color primaryColor = Color.fromARGB(255, 0, 0, 255);
-  static const Color whiteTransparent = Colors.white70;
+  static const Color white = Colors.white;
   static const double borderRadius = 12.0;
   static const double padding = 24.0;
+  static const Color whiteTransparent = Colors.white70;
 
   static TextStyle titleStyle = GoogleFonts.poppins(
     fontSize: 24,

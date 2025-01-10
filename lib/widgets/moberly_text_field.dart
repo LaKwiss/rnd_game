@@ -37,7 +37,7 @@ class _MoberlyTextFieldState extends State<MoberlyTextField> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.whiteTransparent,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(AppTheme.borderRadius),
       ),
       child: TextFormField(

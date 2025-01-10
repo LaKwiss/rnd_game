@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rnd_game/app_theme.dart';
@@ -209,7 +211,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget _buildSwitchModeButton() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.whiteTransparent,
+        color: AppTheme.white,
         borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         border: Border.all(
           color: AppTheme.primaryColor,
@@ -236,82 +238,85 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/arc_de_triomphe.png'),
             fit: BoxFit.cover,
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTheme.padding),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTitle(),
-                    const SizedBox(height: 32),
-                    // Container des champs de formulaire
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppTheme.whiteTransparent,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.borderRadius),
-                        border: Border.all(
-                          color: Colors.blue.shade100,
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Champ Email
-                          Text('Email', style: AppTheme.labelStyle),
-                          const SizedBox(height: 8),
-                          MoberlyTextField(
-                            controller: _emailController,
-                            label: '',
-                            icon: Icons.email,
-                            validator: AuthRepository.validateEmail,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.padding),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTitle(),
+                      const SizedBox(height: 32),
+                      // Container des champs de formulaire
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppTheme.whiteTransparent,
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadius),
+                          border: Border.all(
+                            color: Colors.blue.shade100,
+                            width: 1,
                           ),
-                          const SizedBox(height: 16),
-                          // Champ Nom d'utilisateur (uniquement pour l'inscription)
-                          if (_authMode == AuthMode.signUp) ...[
-                            Text(
-                              'Nom d\'utilisateur',
-                              style: AppTheme.labelStyle,
-                            ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Champ Email
+                            Text('Email', style: AppTheme.labelStyle),
                             const SizedBox(height: 8),
                             MoberlyTextField(
-                              controller: _displayNameController,
+                              controller: _emailController,
                               label: '',
-                              icon: Icons.person,
-                              validator: _validateDisplayName,
+                              icon: Icons.email,
+                              validator: AuthRepository.validateEmail,
                             ),
                             const SizedBox(height: 16),
+                            // Champ Nom d'utilisateur (uniquement pour l'inscription)
+                            if (_authMode == AuthMode.signUp) ...[
+                              Text(
+                                'Nom d\'utilisateur',
+                                style: AppTheme.labelStyle,
+                              ),
+                              const SizedBox(height: 8),
+                              MoberlyTextField(
+                                controller: _displayNameController,
+                                label: '',
+                                icon: Icons.person,
+                                validator: _validateDisplayName,
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            // Champ Mot de passe
+                            Text('Mot de passe', style: AppTheme.labelStyle),
+                            const SizedBox(height: 8),
+                            MoberlyTextField(
+                              controller: _passwordController,
+                              label: '',
+                              icon: Icons.lock,
+                              validator: _validatePassword,
+                              isPassword: true,
+                            ),
                           ],
-                          // Champ Mot de passe
-                          Text('Mot de passe', style: AppTheme.labelStyle),
-                          const SizedBox(height: 8),
-                          MoberlyTextField(
-                            controller: _passwordController,
-                            label: '',
-                            icon: Icons.lock,
-                            validator: _validatePassword,
-                            isPassword: true,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                    ErrorMessage(errorMessage: _errorMessage),
-                    const SizedBox(height: 24),
-                    _buildSubmitButton(),
-                    const SizedBox(height: 16),
-                    _buildSwitchModeButton(),
-                  ],
+                      ErrorMessage(errorMessage: _errorMessage),
+                      const SizedBox(height: 24),
+                      _buildSubmitButton(),
+                      const SizedBox(height: 16),
+                      _buildSwitchModeButton(),
+                    ],
+                  ),
                 ),
               ),
             ),
