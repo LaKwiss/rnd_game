@@ -16,7 +16,9 @@ enum AuthMode {
 }
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({this.authMode = AuthMode.signIn, super.key});
+
+  final AuthMode authMode;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -31,7 +33,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _displayNameController = TextEditingController();
 
   // États du formulaire
-  var _authMode = AuthMode.signIn;
+  late var _authMode;
   var _isLoading = false;
   String? _errorMessage;
 
@@ -152,6 +154,12 @@ class _AuthScreenState extends State<AuthScreen> {
           _authMode == AuthMode.signIn ? AuthMode.signUp : AuthMode.signIn;
       _errorMessage = null;
     });
+  }
+
+  @override
+  void initState() {
+    _authMode = widget.authMode;
+    super.initState();
   }
 
   @override
