@@ -235,7 +235,6 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Utilisation d'un dégradé pour l'arrière-plan
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(

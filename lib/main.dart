@@ -13,11 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await CachedUserRepository.init();
-  runApp(
-    const ProviderScope(
-      child: MainApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MainApp()));
 }
 
 class MainApp extends ConsumerWidget {
@@ -32,68 +28,72 @@ class MainApp extends ConsumerWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      // Utilisation de onGenerateRoute pour gérer les paramètres dynamiques
-      onGenerateRoute: (settings) {
-        // Extraction des paramètres de l'URL pour /game/:id
-        if (settings.name?.startsWith('/game/') ?? false) {
-          final pathSegments = settings.name?.split('/');
-
-          // Vérifie qu'on a bien un ID après /game/
-          if (pathSegments != null && pathSegments.length > 2) {
-            final gameId = pathSegments[2];
-            return MaterialPageRoute(
-              builder: (context) => ExplodingAtomsView(gameId: gameId),
-              settings: settings,
-            );
-          }
-        }
-
-        // Routes statiques
-        switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(
-              builder: (context) => const LandingPage(),
-              settings: settings,
-            );
-          case '/lobby':
-            return MaterialPageRoute(
-              builder: (context) => const LobbyScreen(),
-              settings: settings,
-            );
-          case '/display-name':
-            return MaterialPageRoute(
-              builder: (context) => const DisplayNameScreen(),
-              settings: settings,
-            );
-          case '/login':
-            return MaterialPageRoute(
-              builder: (context) => AuthScreen(authMode: AuthMode.signIn),
-              settings: settings,
-            );
-
-          case '/register':
-            return MaterialPageRoute(
-              builder: (context) => AuthScreen(authMode: AuthMode.signUp),
-              settings: settings,
-            );
-          default:
-            return MaterialPageRoute(
-              builder: (context) => const Scaffold(
-                body: Center(
-                  child: Text('Page not found'),
-                ),
-              ),
-              settings: settings,
-            );
-        }
+      // Routes statiques définies ici
+      routes: {
+        '/': (context) => const LandingPage(),
+        '/lobby': (context) => const LobbyScreen(),
+        '/display-name': (context) => const DisplayNameScreen(),
+        '/login': (context) => AuthScreen(authMode: AuthMode.signIn),
+        '/register': (context) => AuthScreen(authMode: AuthMode.signUp),
       },
-      // Redirection initiale vers l'auth screen
+      // onGenerateRoute uniquement pour les routes dynamiques
+      onGenerateRoute: (settings) => _handleDynamicRoutes(settings),
+      // Pour les routes non trouvées
+      onUnknownRoute: (settings) => MaterialPageRoute(
+        builder: (context) => const _NotFoundScreen(),
+      ),
       initialRoute: '/',
+    );
+  }
+
+  Route<dynamic>? _handleDynamicRoutes(RouteSettings settings) {
+    // Gère uniquement les routes dynamiques avec paramètres
+    final uri = Uri.parse(settings.name ?? '');
+
+    // Route pour les jeux avec ID
+    if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'game') {
+      final gameId = uri.pathSegments[1];
+      return MaterialPageRoute(
+        builder: (context) => ExplodingAtomsView(gameId: gameId),
+        settings: settings,
+      );
+    }
+
+    return null; // Retourne null pour laisser le système utiliser onUnknownRoute
+  }
+}
+
+class _NotFoundScreen extends StatelessWidget {
+  const _NotFoundScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Page non trouvée'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              'Cette page n\'existe pas',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.navigateToLandingPage(),
+              child: const Text('Retour à l\'accueil'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-// Extension pour faciliter la navigation
 extension NavigationExtension on BuildContext {
   void navigateToGame(String gameId) {
     Navigator.pushReplacementNamed(this, '/game/$gameId');
