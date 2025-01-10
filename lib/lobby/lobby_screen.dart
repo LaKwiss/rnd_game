@@ -1,18 +1,20 @@
 import 'dart:developer';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:rnd_game/app_theme.dart';
 import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:rnd_game/cached_user_repository.dart';
 import 'package:rnd_game/current_player_provider.dart';
+import 'package:rnd_game/data/statistics_repository.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/exploding_atoms_stream_provider.dart';
 import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_game_card.dart';
 import 'package:rnd_game/main.dart';
+import 'package:rnd_game/shared_preferences_repository.dart';
 
-// Le widget principal du lobby qui gère l'orchestration des différents états
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
 
@@ -26,37 +28,44 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final String? username = await AuthRepository.getCurrentUsername();
       if (username == null || username.isEmpty) {
-        context.navigateToDisplayNameCreation();
-      } else {
-        final uid = await AuthRepository.getUid();
-        if (uid != null) {
-          CachedUserRepository.updateDisplayName(uid, username);
+        if (mounted) {
+          context.navigateToDisplayNameCreation();
         }
+        return;
       }
-      log('Username: $username');
+
+      final uid = await AuthRepository.getUid();
+      if (uid != null) {
+        await CachedUserRepository.updateDisplayName(uid, username);
+        final DateTime? lastConnection =
+            await SharedPreferencesRepository.getLastConnection();
+        if (lastConnection != null) {
+          final difference =
+              DateTime.now().difference(lastConnection).inSeconds;
+          await StatisticsRepository.incTimePlayed(
+              Duration(seconds: difference));
+        }
+        await StatisticsRepository.setLastConnection(DateTime.now());
+      }
     });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // On observe les trois providers principaux
     final playerAsync = ref.watch(currentPlayerProvider);
     final gamesAsync = ref.watch(explodingAtomsStreamProvider);
     final lobbyState = ref.watch(lobbyControllerProvider);
 
-    // Gestion des états du joueur
     return playerAsync.when(
       loading: () => const _LoadingScreen(),
       error: (error, stack) {
-        // Si l'erreur est liée à l'authentification, on redirige vers la connexion
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.of(context).pushReplacementNamed('/');
         });
         return const _LoadingScreen();
       },
       data: (playerId) {
-        // Si pas de playerId, on redirige vers la connexion
         if (playerId == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.of(context).pushReplacementNamed('/');
@@ -64,7 +73,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
           return const _LoadingScreen();
         }
 
-        // Gestion des états des parties
         return gamesAsync.when(
           loading: () => const _LoadingScreen(),
           error: (error, stack) {
@@ -72,12 +80,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             return _ErrorScreen(error: error);
           },
           data: (games) {
-            // On filtre les parties actives
             final activeGames = games
                 .where((game) => game.status != GameStatus.finished)
                 .toList();
 
-            // On affiche le contenu principal
             return _LobbyContent(
               games: activeGames,
               playerId: playerId,
@@ -90,65 +96,111 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   }
 }
 
-// Écran de chargement générique
 class _LoadingScreen extends StatelessWidget {
   const _LoadingScreen();
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Chargement...'),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/lake_background.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: const Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppTheme.primaryColor),
+                SizedBox(height: 16),
+                Text(
+                  'Chargement...',
+                  style: TextStyle(
+                    color: AppTheme.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-// Écran d'erreur avec possibilité de retour
-class _ErrorScreen extends StatefulWidget {
+class _ErrorScreen extends StatelessWidget {
   final Object error;
 
   const _ErrorScreen({required this.error});
 
   @override
-  State<_ErrorScreen> createState() => _ErrorScreenState();
-}
-
-class _ErrorScreenState extends State<_ErrorScreen> {
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Une erreur est survenue:\n${widget.error}',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red[700]),
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/lake_background.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: AppTheme.padding),
+              padding: const EdgeInsets.all(AppTheme.padding),
+              decoration: BoxDecoration(
+                color: AppTheme.whiteTransparent,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline,
+                      size: 48, color: Colors.red.shade700),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Une erreur est survenue:\n$error',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushReplacementNamed('/'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade50,
+                      foregroundColor: Colors.red.shade700,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text('Retour à l\'accueil'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pushReplacementNamed('/'),
-              child: const Text('Retour à l\'accueil'),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-// Contenu principal du lobby
 class _LobbyContent extends ConsumerWidget {
   final List<ExplodingAtoms> games;
   final String playerId;
@@ -162,61 +214,74 @@ class _LobbyContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Exploding Atoms - Lobby'),
-        automaticallyImplyLeading: false,
-        actions: [
-          // Bouton de déconnexion
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              Navigator.of(context).pushReplacementNamed('/');
-            },
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/lake_background.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: AppTheme.primaryColor,
+            title: Text('Exploding Atoms', style: AppTheme.titleStyle),
+            automaticallyImplyLeading: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout, color: AppTheme.white),
+                onPressed: () async {
+                  Navigator.of(context).pushReplacementNamed('/');
+                },
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () async {
-              CachedUserRepository.clearCache();
-            },
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedClean,
-              color: Colors.black,
-            ),
-          )
-        ],
+          body: Stack(
+            children: [
+              if (games.isEmpty)
+                _EmptyLobby(playerId: playerId)
+              else
+                _GamesList(
+                  games: games,
+                  playerId: playerId,
+                  onRefresh: () => ref.invalidate(explodingAtomsStreamProvider),
+                ),
+              if (isLoading)
+                Container(
+                  color: Colors.black45,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          floatingActionButton: games.isEmpty
+              ? null
+              : FloatingActionButton.extended(
+                  onPressed: isLoading
+                      ? null
+                      : () => ref
+                          .read(lobbyControllerProvider.notifier)
+                          .createGame(playerId),
+                  backgroundColor: AppTheme.primaryColor,
+                  icon: const Icon(Icons.add, color: AppTheme.white),
+                  label: Text(
+                    'Nouvelle partie',
+                    style: AppTheme.buttonTextStyle.copyWith(
+                      color: AppTheme.white,
+                    ),
+                  ),
+                ),
+        ),
       ),
-      body: Stack(
-        children: [
-          // Affichage conditionnel selon qu'il y a des parties ou non
-          if (games.isEmpty)
-            _EmptyLobby(playerId: playerId)
-          else
-            _GamesList(
-              games: games,
-              playerId: playerId,
-              onRefresh: () => ref.invalidate(explodingAtomsStreamProvider),
-            ),
-
-          // Overlay de chargement
-          if (isLoading) const _LoadingOverlay(),
-        ],
-      ),
-      // FAB pour créer une partie
-      floatingActionButton: games.isEmpty
-          ? null
-          : FloatingActionButton(
-              onPressed: isLoading
-                  ? null
-                  : () => ref
-                      .read(lobbyControllerProvider.notifier)
-                      .createGame(playerId),
-              child: const Icon(Icons.add),
-            ),
     );
   }
 }
 
-// Widget pour l'état vide du lobby
 class _EmptyLobby extends StatelessWidget {
   final String playerId;
 
@@ -225,22 +290,39 @@ class _EmptyLobby extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Aucune partie en cours',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-          _CreateGameButton(playerId: playerId),
-        ],
+      child: Container(
+        margin: const EdgeInsets.all(AppTheme.padding),
+        padding: const EdgeInsets.all(AppTheme.padding),
+        decoration: BoxDecoration(
+          color: AppTheme.whiteTransparent,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+          border: Border.all(color: Colors.blue.shade100),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.sports_esports,
+              size: 64,
+              color: AppTheme.primaryColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Aucune partie en cours',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            _CreateGameButton(playerId: playerId),
+          ],
+        ),
       ),
     );
   }
 }
 
-// Liste des parties
 class _GamesList extends StatelessWidget {
   final List<ExplodingAtoms> games;
   final String playerId;
@@ -257,26 +339,27 @@ class _GamesList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () async => onRefresh(),
       child: ListView.builder(
-        itemCount: games.length,
-        itemBuilder: (context, index) => GameCard(
-          game: games[index],
-          playerId: playerId,
+        padding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 8,
         ),
-      ),
-    );
-  }
-}
-
-// Overlay de chargement semi-transparent
-class _LoadingOverlay extends StatelessWidget {
-  const _LoadingOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black26,
-      child: const Center(
-        child: CircularProgressIndicator(),
+        itemCount: games.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.whiteTransparent,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                border: Border.all(color: Colors.blue.shade100),
+              ),
+              child: GameCard(
+                game: games[index],
+                playerId: playerId,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -292,8 +375,24 @@ class _CreateGameButton extends ConsumerWidget {
     return ElevatedButton.icon(
       onPressed: () =>
           ref.read(lobbyControllerProvider.notifier).createGame(playerId),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: AppTheme.white,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 32,
+          vertical: 16,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        ),
+      ),
       icon: const Icon(Icons.add),
-      label: const Text('Créer une partie'),
+      label: Text(
+        'Créer une partie',
+        style: AppTheme.buttonTextStyle.copyWith(
+          color: AppTheme.white,
+        ),
+      ),
     );
   }
 }

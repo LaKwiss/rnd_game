@@ -14,4 +14,20 @@ class SharedPreferencesRepository {
       return prefs.getString('uid');
     });
   }
+
+  static FutureOr<void> setLastConnection(DateTime lastConnection) async {
+    await SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('lastConnection', lastConnection.toIso8601String());
+    });
+  }
+
+  static FutureOr<DateTime?> getLastConnection() async {
+    return SharedPreferences.getInstance().then((prefs) {
+      final lastConnection = prefs.getString('lastConnection');
+      if (lastConnection != null) {
+        return DateTime.parse(lastConnection);
+      }
+      return null;
+    });
+  }
 }

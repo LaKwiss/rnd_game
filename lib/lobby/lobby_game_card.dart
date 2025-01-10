@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rnd_game/app_theme.dart';
+import 'package:rnd_game/cached_user_repository.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_statuschip.dart';
@@ -21,127 +23,277 @@ class GameCard extends ConsumerWidget {
         game.playersIds.isNotEmpty && game.playersIds.first == playerId;
     final hasJoined = game.playersIds.contains(playerId);
 
-    final playerStatus = switch ((isCreator, hasJoined)) {
-      (true, _) => 'Votre partie',
-      (false, true) => 'Partie #${game.id.substring(0, 6)} (Rejoint)',
-      _ => 'Partie #${game.id.substring(0, 6)}'
-    };
-
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context, playerStatus),
-            const SizedBox(height: 12),
-            _buildPlayerCount(),
-            const SizedBox(height: 16),
-            _buildActionButtons(context, ref, isCreator, hasJoined),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context, isCreator),
+          const SizedBox(height: 16),
+          _buildPlayerList(context),
+          const SizedBox(height: 16),
+          _buildActionButtons(context, ref, isCreator, hasJoined),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, String playerStatus) {
+  Widget _buildHeader(BuildContext context, bool isCreator) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          playerStatus,
-          style: Theme.of(context).textTheme.titleMedium,
+        Row(
+          children: [
+            if (isCreator)
+              const Icon(
+                Icons.star,
+                color: AppTheme.primaryColor,
+                size: 20,
+              ),
+            if (isCreator) const SizedBox(width: 8),
+            Text(
+              isCreator ? 'Votre partie' : 'Partie #${game.id.substring(0, 6)}',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         StatusChip(status: game.status),
       ],
     );
   }
 
-  Widget _buildPlayerCount() {
-    return Row(
+  Widget _buildPlayerList(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(Icons.people, size: 20, color: Colors.grey[600]),
-        const SizedBox(width: 8),
         Text(
-          '${game.playersIds.length}/${game.maxPlayers} joueurs',
-          style: TextStyle(color: Colors.grey[600]),
+          'Joueurs (${game.playersIds.length}/${game.isInProgress ? game.playersIds.length : game.maxPlayers})',
+          style: TextStyle(
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...game.playersIds.map((id) => _buildPlayerChip(id)),
+            if (!game.isInProgress)
+              ...List.generate(
+                game.maxPlayers - game.playersIds.length,
+                (index) => _buildEmptySlot(),
+              ),
+          ],
         ),
       ],
     );
   }
 
+  Widget _buildPlayerChip(String id) {
+    final isCurrentPlayer = id == playerId;
+    final isNext = id == game.nextPlayerId;
+
+    return FutureBuilder<String?>(
+      future: CachedUserRepository.getDisplayName(id),
+      builder: (context, snapshot) {
+        final displayName = snapshot.data ?? 'Chargement...';
+
+        return Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: isNext
+                ? AppTheme.primaryColor.withAlpha((255 * 0.1).toInt())
+                : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isCurrentPlayer
+                  ? AppTheme.primaryColor
+                  : Colors.grey.shade300,
+              width: isCurrentPlayer ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isNext)
+                const Icon(
+                  Icons.play_arrow,
+                  size: 16,
+                  color: AppTheme.primaryColor,
+                ),
+              if (isNext) const SizedBox(width: 4),
+              Text(
+                isCurrentPlayer ? 'Vous' : displayName,
+                style: TextStyle(
+                  color: isNext ? AppTheme.primaryColor : Colors.grey[800],
+                  fontWeight: isCurrentPlayer || isNext
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptySlot() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.grey[300]!,
+        ),
+      ),
+      child: Text(
+        'Libre',
+        style: TextStyle(
+          color: Colors.grey[500],
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButtons(
-      BuildContext context, WidgetRef ref, bool isCreator, bool hasJoined) {
+    BuildContext context,
+    WidgetRef ref,
+    bool isCreator,
+    bool hasJoined,
+  ) {
     if (game.isInProgress) {
-      return _buildInProgressButton(context);
+      return _buildInProgressButton(context, hasJoined);
     }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (isCreator && game.status == GameStatus.ready)
-          _buildStartButton(context, ref),
-        if (!hasJoined && game.canJoin) _buildJoinButton(ref),
+          _buildButton(
+            label: 'Démarrer',
+            icon: Icons.play_arrow,
+            color: Colors.green,
+            onPressed: () async {
+              await ref.read(lobbyControllerProvider.notifier).startGame(game);
+              if (context.mounted) {
+                context.navigateToGame(game.id);
+              }
+            },
+          ),
+        if (!hasJoined && game.canJoin)
+          _buildButton(
+            label: 'Rejoindre',
+            icon: Icons.person_add,
+            onPressed: () => ref
+                .read(lobbyControllerProvider.notifier)
+                .joinGame(game.id, playerId),
+          ),
         if (hasJoined && !isCreator) ...[
           const SizedBox(width: 8),
-          _buildLeaveButton(ref),
+          _buildButton(
+            label: 'Quitter',
+            icon: Icons.exit_to_app,
+            color: Colors.red,
+            outlined: true,
+            onPressed: () => ref
+                .read(lobbyControllerProvider.notifier)
+                .leaveGame(game.id, playerId),
+          ),
         ],
         if (isCreator) ...[
           const SizedBox(width: 8),
-          _buildDeleteButton(ref),
+          _buildButton(
+            label: '',
+            icon: Icons.delete,
+            color: Colors.red,
+            small: true,
+            onPressed: () =>
+                ref.read(lobbyControllerProvider.notifier).deleteGame(game.id),
+          ),
         ],
       ],
     );
   }
 
-  Widget _buildStartButton(BuildContext context, WidgetRef ref) {
-    return ElevatedButton(
-      onPressed: () async {
-        await ref.read(lobbyControllerProvider.notifier).startGame(game);
-        if (context.mounted) {
-          context.navigateToGame(game.id);
-        }
-      },
-      child: const Text('Démarrer'),
+  Widget _buildInProgressButton(BuildContext context, bool hasJoined) {
+    return _buildButton(
+      label: hasJoined ? 'Reprendre' : 'Observer',
+      icon: hasJoined ? Icons.play_arrow : Icons.visibility,
+      onPressed: () => context.navigateToGame(game.id),
     );
   }
 
-  Widget _buildJoinButton(WidgetRef ref) {
-    return ElevatedButton(
-      onPressed: () => ref
-          .read(lobbyControllerProvider.notifier)
-          .joinGame(game.id, playerId),
-      child: const Text('Rejoindre'),
-    );
-  }
+  Widget _buildButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+    Color? color,
+    bool outlined = false,
+    bool small = false,
+  }) {
+    final buttonColor = color ?? AppTheme.primaryColor;
 
-  Widget _buildLeaveButton(WidgetRef ref) {
-    return OutlinedButton(
-      onPressed: () => ref
-          .read(lobbyControllerProvider.notifier)
-          .leaveGame(game.id, playerId),
-      child: const Text('Quitter'),
-    );
-  }
+    if (small) {
+      return IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, color: buttonColor),
+        style: IconButton.styleFrom(
+          side: BorderSide(color: buttonColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
 
-  Widget _buildDeleteButton(WidgetRef ref) {
-    return IconButton(
-      onPressed: () =>
-          ref.read(lobbyControllerProvider.notifier).deleteGame(game.id),
-      icon: const Icon(Icons.delete),
-      color: Colors.red,
-    );
-  }
-
-  Widget _buildInProgressButton(BuildContext context) {
-    final hasJoined = game.playersIds.contains(playerId);
-    final buttonText = hasJoined ? 'Reprendre' : 'Observer';
+    if (outlined) {
+      return OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: buttonColor,
+          side: BorderSide(color: buttonColor),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
 
     return ElevatedButton.icon(
-      onPressed: () => context.navigateToGame(game.id),
-      icon: const Icon(Icons.play_arrow),
-      label: Text(buttonText),
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: buttonColor,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
     );
   }
 }
