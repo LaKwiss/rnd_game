@@ -256,10 +256,8 @@ class GameCard extends ConsumerWidget {
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {
     showDialog<void>(
       context: context,
-      barrierDismissible:
-          false, // Empêche la fermeture en cliquant à l'extérieur
+      barrierDismissible: false,
       builder: (_) => Dialog(
-        // Utilisation de Dialog au lieu de AlertDialog pour plus de contrôle sur le style
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         ),
@@ -269,7 +267,6 @@ class GameCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // En-tête avec titre et bouton de fermeture
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -299,8 +296,6 @@ class GameCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 24),
-
-              // Message de confirmation
               const Text(
                 'Êtes-vous sûr de vouloir terminer cette partie ?',
                 style: TextStyle(
@@ -310,12 +305,9 @@ class GameCard extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-
-              // Boutons d'action
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Bouton Annuler
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -337,7 +329,6 @@ class GameCard extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // Bouton Terminer
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
