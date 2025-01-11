@@ -110,7 +110,6 @@ class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Nouveau: Ajout d'un Stack pour superposer le titre et le bouton de fermeture
               Stack(
                 alignment: Alignment.center,
                 children: [
