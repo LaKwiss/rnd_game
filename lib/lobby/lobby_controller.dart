@@ -11,10 +11,11 @@ class LobbyController extends StateNotifier<AsyncValue<void>> {
         () => ExplodingAtomsRepository.createLobby(playerId));
   }
 
-  Future<void> deleteGame(String gameId) async {
+  Future<String> deleteGame(String gameId) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
         () => ExplodingAtomsRepository.deleteGame(gameId));
+    return gameId;
   }
 
   Future<void> joinGame(String gameId, String playerId) async {

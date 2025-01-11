@@ -227,53 +227,11 @@ class _LobbyContent extends ConsumerWidget {
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: AppTheme.primaryColor,
-            leading: TitleButton(),
             title: Text(
               'Exploding Atoms',
               style: AppTheme.titleStyle,
             ),
             automaticallyImplyLeading: false,
-          ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Exploding Atoms',
-                        style: AppTheme.titleStyle.copyWith(
-                          color: AppTheme.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ListTile(
-                  title: const Text('Statistiques'),
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/statistics');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Paramètres'),
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/settings');
-                  },
-                ),
-                ListTile(
-                  title: const Text('Déconnexion'),
-                  onTap: () async {
-                    Navigator.of(context).pushReplacementNamed('/');
-                  },
-                ),
-              ],
-            ),
           ),
           body: Stack(
             children: [

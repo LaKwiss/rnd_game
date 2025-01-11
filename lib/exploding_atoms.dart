@@ -148,7 +148,7 @@ class ExplodingAtoms extends Equatable {
 
   // Getters utiles pour le lobby
   bool get canStart =>
-      status == GameStatus.waitingForPlayers && playersIds.length >= minPlayers;
+      status == GameStatus.ready && playersIds.length >= minPlayers;
 
   bool get canJoin =>
       status == GameStatus.waitingForPlayers && playersIds.length < maxPlayers;

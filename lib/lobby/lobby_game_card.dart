@@ -176,7 +176,7 @@ class GameCard extends ConsumerWidget {
     bool hasJoined,
   ) {
     if (game.isInProgress) {
-      return _buildInProgressButton(context, hasJoined);
+      return _buildInProgressButton(context, hasJoined, isCreator, ref);
     }
 
     return Row(
@@ -217,23 +217,71 @@ class GameCard extends ConsumerWidget {
         if (isCreator) ...[
           const SizedBox(width: 8),
           _buildButton(
-            label: '',
+            label: 'Supprimer',
             icon: Icons.delete,
             color: Colors.red,
             small: true,
-            onPressed: () =>
-                ref.read(lobbyControllerProvider.notifier).deleteGame(game.id),
+            onPressed: () => _showDeleteDialog(context, ref),
           ),
         ],
       ],
     );
   }
 
-  Widget _buildInProgressButton(BuildContext context, bool hasJoined) {
-    return _buildButton(
-      label: hasJoined ? 'Reprendre' : 'Observer',
-      icon: hasJoined ? Icons.play_arrow : Icons.visibility,
-      onPressed: () => context.navigateToGame(game.id),
+  Widget _buildInProgressButton(
+      BuildContext context, bool hasJoined, bool isCreator, WidgetRef ref) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _buildButton(
+          label: hasJoined ? 'Reprendre' : 'Observer',
+          icon: hasJoined ? Icons.play_arrow : Icons.visibility,
+          onPressed: () => context.navigateToGame(game.id),
+        ),
+        if (isCreator) const SizedBox(width: 8),
+        if (isCreator)
+          _buildButton(
+            label: 'Terminer',
+            small: true,
+            icon: Icons.delete_outline,
+            color: Colors.red,
+            outlined: true,
+            onPressed: () => _showDeleteDialog(context, ref),
+          ),
+      ],
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, WidgetRef ref) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Terminer la partie'),
+        content: const Text('Êtes-vous sûr de vouloir terminer cette partie ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                Navigator.of(context).pop();
+                await ref
+                    .read(lobbyControllerProvider.notifier)
+                    .deleteGame(game.id);
+              } finally {
+                if (context.mounted) {
+                  context.navigateToLobby();
+                }
+              }
+            },
+            child: const Text('Terminer'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -248,13 +296,14 @@ class GameCard extends ConsumerWidget {
     final buttonColor = color ?? AppTheme.primaryColor;
 
     if (small) {
-      return IconButton(
-        onPressed: onPressed,
-        icon: Icon(icon, color: buttonColor),
-        style: IconButton.styleFrom(
-          side: BorderSide(color: buttonColor),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+      return Center(
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: IconButton(
+            icon: Icon(icon),
+            onPressed: onPressed,
+            color: buttonColor,
+            iconSize: 24,
           ),
         ),
       );
