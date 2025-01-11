@@ -52,7 +52,7 @@ class Cell {
     return maxAmount;
   }
 
-  bool get isExploding => atomCount > maxAmount;
+  bool get isExploding => atomCount >= maxAmount;
 
   @override
   bool operator ==(Object other) {
