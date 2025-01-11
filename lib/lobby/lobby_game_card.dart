@@ -256,31 +256,124 @@ class GameCard extends ConsumerWidget {
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {
     showDialog<void>(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Terminer la partie'),
-        content: const Text('Êtes-vous sûr de vouloir terminer cette partie ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
+      barrierDismissible:
+          false, // Empêche la fermeture en cliquant à l'extérieur
+      builder: (_) => Dialog(
+        // Utilisation de Dialog au lieu de AlertDialog pour plus de contrôle sur le style
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.padding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // En-tête avec titre et bouton de fermeture
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(
+                    'Terminer la partie',
+                    style: AppTheme.titleStyle.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close,
+                        color: AppTheme.primaryColor,
+                        size: 24,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 24,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Message de confirmation
+              const Text(
+                'Êtes-vous sûr de vouloir terminer cette partie ?',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+
+              // Boutons d'action
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Bouton Annuler
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
+                        side: const BorderSide(color: AppTheme.primaryColor),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadius),
+                        ),
+                      ),
+                      child: Text(
+                        'Annuler',
+                        style: AppTheme.buttonTextStyle.copyWith(
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Bouton Terminer
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          Navigator.of(context).pop();
+                          await ref
+                              .read(lobbyControllerProvider.notifier)
+                              .deleteGame(game.id);
+                        } finally {
+                          if (context.mounted) {
+                            context.navigateToLobby();
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadius),
+                        ),
+                      ),
+                      child: Text(
+                        'Terminer',
+                        style: AppTheme.buttonTextStyle.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                Navigator.of(context).pop();
-                await ref
-                    .read(lobbyControllerProvider.notifier)
-                    .deleteGame(game.id);
-              } finally {
-                if (context.mounted) {
-                  context.navigateToLobby();
-                }
-              }
-            },
-            child: const Text('Terminer'),
-          ),
-        ],
+        ),
       ),
     );
   }

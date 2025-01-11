@@ -521,11 +521,10 @@ class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
 
     try {
       // On récupère d'abord la partie pour vérifier son état
-      final game =
-          await ref.read(explodingAtomsStreamProvider).value?.firstWhere(
-                (game) => game.id == _gameIdController.text.trim(),
-                orElse: () => throw Exception('not_found'),
-              );
+      final game = ref.read(explodingAtomsStreamProvider).value?.firstWhere(
+            (game) => game.id == _gameIdController.text.trim(),
+            orElse: () => throw Exception('not_found'),
+          );
 
       // Si la partie n'accepte plus de joueurs
       if (game != null && !game.canJoin) {
@@ -582,15 +581,37 @@ class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Rejoindre une partie',
-                style: AppTheme.titleStyle.copyWith(
-                  color: AppTheme.primaryColor,
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.center,
+              // Nouveau: Ajout d'un Stack pour superposer le titre et le bouton de fermeture
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(
+                    'Rejoindre une partie',
+                    style: AppTheme.titleStyle.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Icon(
+                        Icons.close,
+                        color: AppTheme.primaryColor,
+                        size: 24,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 24,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
+              // Le reste du contenu reste inchangé...
               MoberlyTextField(
                 controller: _gameIdController,
                 label: 'ID de la partie',
@@ -598,7 +619,12 @@ class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
                 validator: _validateGameId,
                 isLoading: _isLoading,
               ),
-              ErrorMessage(errorMessage: _errorMessage),
+              ErrorMessage(
+                errorMessage: _errorMessage,
+                onClose: _errorMessage != null
+                    ? () => setState(() => _errorMessage = null)
+                    : null,
+              ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _joinGame,
