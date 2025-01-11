@@ -14,6 +14,8 @@ import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_game_card.dart';
 import 'package:rnd_game/main.dart';
 import 'package:rnd_game/shared_preferences_repository.dart';
+import 'package:rnd_game/widgets/error_message.dart';
+import 'package:rnd_game/widgets/moberly_text_field.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -254,23 +256,6 @@ class _LobbyContent extends ConsumerWidget {
                 ),
             ],
           ),
-          floatingActionButton: games.isEmpty
-              ? null
-              : FloatingActionButton.extended(
-                  onPressed: isLoading
-                      ? null
-                      : () => ref
-                          .read(lobbyControllerProvider.notifier)
-                          .createGame(playerId),
-                  backgroundColor: AppTheme.primaryColor,
-                  icon: const Icon(Icons.add, color: AppTheme.white),
-                  label: Text(
-                    'Nouvelle partie',
-                    style: AppTheme.buttonTextStyle.copyWith(
-                      color: AppTheme.white,
-                    ),
-                  ),
-                ),
         ),
       ),
     );
@@ -337,7 +322,7 @@ class _EmptyLobby extends StatelessWidget {
   }
 }
 
-class _GamesList extends StatelessWidget {
+class _GamesList extends ConsumerStatefulWidget {
   final List<ExplodingAtoms> games;
   final String playerId;
   final VoidCallback onRefresh;
@@ -349,31 +334,113 @@ class _GamesList extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_GamesList> createState() => _GamesListState();
+}
+
+class _GamesListState extends ConsumerState<_GamesList> {
+  @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async => onRefresh(),
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 8,
-        ),
-        itemCount: games.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppTheme.whiteTransparent,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadius),
-                border: Border.all(color: Colors.blue.shade100),
-              ),
-              child: GameCard(
-                game: games[index],
-                playerId: playerId,
+      onRefresh: () async => widget.onRefresh(),
+      // Nous utilisons un CustomScrollView pour combiner plusieurs widgets défilables
+      child: CustomScrollView(
+        slivers: [
+          // En-tête avec le bouton de création
+          SliverToBoxAdapter(
+            child: Row(
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0)
+                        .copyWith(top: 16),
+                    child: ElevatedButton.icon(
+                      onPressed: () => ref
+                          .read(lobbyControllerProvider.notifier)
+                          .createGame(widget.playerId),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadius),
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        'Créer une nouvelle partie',
+                        style: AppTheme.buttonTextStyle,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0)
+                        .copyWith(top: 16),
+                    child: ElevatedButton.icon(
+                      onPressed: () => showDialog(
+                          context: context,
+                          builder: (context) =>
+                              JoinGameDialog(playerId: widget.playerId)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.borderRadius),
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        'Rejoindre une partie',
+                        style: AppTheme.buttonTextStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Liste des parties
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 16,
+            ),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.whiteTransparent,
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.borderRadius),
+                        border: Border.all(color: Colors.blue.shade100),
+                      ),
+                      child: GameCard(
+                        game: widget.games[index],
+                        playerId: widget.playerId,
+                      ),
+                    ),
+                  );
+                },
+                childCount: widget.games.length,
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -405,6 +472,134 @@ class _CreateGameButton extends ConsumerWidget {
         'Créer une partie',
         style: AppTheme.buttonTextStyle.copyWith(
           color: AppTheme.white,
+        ),
+      ),
+    );
+  }
+}
+
+class JoinGameDialog extends ConsumerStatefulWidget {
+  final String playerId;
+
+  const JoinGameDialog({
+    super.key,
+    required this.playerId,
+  });
+
+  @override
+  ConsumerState<JoinGameDialog> createState() => _JoinGameDialogState();
+}
+
+class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _gameIdController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _gameIdController.dispose();
+    super.dispose();
+  }
+
+  // Validation de l'ID de la partie
+  String? _validateGameId(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'L\'ID de la partie est requis';
+    }
+    // Vous pouvez ajouter d'autres validations si nécessaire
+    return null;
+  }
+
+  // Gestion de la soumission
+  Future<void> _joinGame() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await ref
+          .read(lobbyControllerProvider.notifier)
+          .joinGame(_gameIdController.text.trim(), widget.playerId);
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Ferme le dialog après avoir rejoint
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Impossible de rejoindre la partie';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.padding),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Rejoindre une partie',
+                style: AppTheme.titleStyle.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontSize: 20,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              MoberlyTextField(
+                controller: _gameIdController,
+                label: 'ID de la partie',
+                icon: Icons.tag,
+                validator: _validateGameId,
+                isLoading: _isLoading,
+              ),
+              ErrorMessage(errorMessage: _errorMessage),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _joinGame,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Rejoindre',
+                        style: AppTheme.buttonTextStyle
+                            .copyWith(color: Colors.white),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );
