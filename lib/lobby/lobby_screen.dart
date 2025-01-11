@@ -511,7 +511,6 @@ class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
     return null;
   }
 
-  // Gestion de la soumission
   Future<void> _joinGame() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -521,16 +520,44 @@ class _JoinGameDialogState extends ConsumerState<JoinGameDialog> {
     });
 
     try {
+      // On récupère d'abord la partie pour vérifier son état
+      final game =
+          await ref.read(explodingAtomsStreamProvider).value?.firstWhere(
+                (game) => game.id == _gameIdController.text.trim(),
+                orElse: () => throw Exception('not_found'),
+              );
+
+      // Si la partie n'accepte plus de joueurs
+      if (game != null && !game.canJoin) {
+        throw Exception('game_full');
+      }
+
+      // Si la partie est déjà terminée
+      if (game != null && game.status == GameStatus.finished) {
+        throw Exception('game_finished');
+      }
+
+      // On essaie de rejoindre la partie
       await ref
           .read(lobbyControllerProvider.notifier)
           .joinGame(_gameIdController.text.trim(), widget.playerId);
 
       if (mounted) {
-        Navigator.of(context).pop(); // Ferme le dialog après avoir rejoint
+        Navigator.of(context).pop();
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Impossible de rejoindre la partie';
+        // Messages d'erreur personnalisés selon le type d'erreur
+        if (e is Exception && e.toString().contains('not_found')) {
+          _errorMessage = 'Cette partie n\'existe pas';
+        } else if (e is Exception && e.toString().contains('game_full')) {
+          _errorMessage = 'Cette partie n\'accepte plus de joueurs';
+        } else if (e is Exception && e.toString().contains('game_finished')) {
+          _errorMessage = 'Cette partie est déjà terminée';
+        } else {
+          _errorMessage =
+              'Impossible de rejoindre la partie. Vérifiez l\'ID et réessayez.';
+        }
       });
     } finally {
       if (mounted) {
