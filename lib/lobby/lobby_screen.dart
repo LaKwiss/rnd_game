@@ -233,14 +233,6 @@ class _LobbyContent extends ConsumerWidget {
               style: AppTheme.titleStyle,
             ),
             automaticallyImplyLeading: false,
-            // actions: [
-            //   IconButton(
-            //     icon: const Icon(Icons.logout, color: AppTheme.white),
-            //     onPressed: () async {
-            //       Navigator.of(context).pushReplacementNamed('/');
-            //     },
-            //   ),
-            // ],
           ),
           drawer: Drawer(
             child: ListView(
