@@ -14,6 +14,12 @@ class AppTheme {
     color: Colors.white,
   );
 
+  static TextStyle secondTitleStyle = GoogleFonts.poppins(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: Color(0xFF0000FF),
+  );
+
   static TextStyle labelStyle = TextStyle(
     color: Colors.grey[700],
     fontWeight: FontWeight.w500,

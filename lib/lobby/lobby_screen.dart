@@ -86,7 +86,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                 .where((game) => game.status != GameStatus.finished)
                 .toList();
 
-            return _LobbyContent(
+            return LobbyContent(
               games: activeGames,
               playerId: playerId,
               isLoading: lobbyState is AsyncLoading,
@@ -203,19 +203,22 @@ class _ErrorScreen extends StatelessWidget {
   }
 }
 
-class _LobbyContent extends ConsumerWidget {
+class LobbyContent extends ConsumerWidget {
   final List<ExplodingAtoms> games;
   final String playerId;
   final bool isLoading;
 
-  const _LobbyContent({
+  const LobbyContent({
     required this.games,
     required this.playerId,
     required this.isLoading,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -226,14 +229,18 @@ class _LobbyContent extends ConsumerWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: Scaffold(
+          key: scaffoldKey,
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             backgroundColor: AppTheme.primaryColor,
-            title: Text(
-              'Exploding Atoms',
-              style: AppTheme.titleStyle,
-            ),
+            title: Text('Exploding Atoms', style: AppTheme.titleStyle),
             automaticallyImplyLeading: false,
+            actions: [
+              IconButton(
+                onPressed: () => scaffoldKey.currentState?.openEndDrawer(),
+                icon: const Icon(Icons.grid_view_sharp, color: Colors.white),
+              ),
+            ],
           ),
           body: Stack(
             children: [
@@ -245,18 +252,110 @@ class _LobbyContent extends ConsumerWidget {
                   playerId: playerId,
                   onRefresh: () => ref.invalidate(explodingAtomsStreamProvider),
                 ),
-              if (isLoading)
-                Container(
-                  color: Colors.black45,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                ),
+              if (isLoading) const LoadingOverlay(),
             ],
           ),
+          endDrawer: Drawer(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            backgroundColor: Color(0xFF0000FF),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [
+                      Container(
+                        height: 150,
+                        color: Colors.white,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              bottom: 40,
+                              left: 16,
+                              child: Text(
+                                'Moderly',
+                                style: AppTheme.secondTitleStyle,
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 8,
+                              left: 16,
+                              child: Text(
+                                'Lake',
+                                style: AppTheme.secondTitleStyle,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.person,
+                        title: 'Player Profile',
+                        route: '/profile',
+                      ),
+                      _buildDrawerItem(
+                        context: context,
+                        icon: Icons.settings,
+                        title: 'Settings',
+                        route: '/settings',
+                      ),
+                    ],
+                  ),
+                ),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.logout,
+                  title: 'Logout',
+                  route: '/login',
+                  replace: true,
+                ),
+              ],
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String route,
+    bool replace = false,
+  }) {
+    return ListTile(
+      minTileHeight: 60.0,
+      leading: Icon(
+        icon,
+        color: Colors.white,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      ),
+      onTap: () {
+        if (replace) {
+          Navigator.of(context).pushReplacementNamed(route);
+        } else {
+          Navigator.of(context).pushNamed(route);
+        }
+      },
+    );
+  }
+}
+
+class LoadingOverlay extends StatelessWidget {
+  const LoadingOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black45,
+      child: const Center(
+        child: CircularProgressIndicator(color: AppTheme.primaryColor),
       ),
     );
   }
