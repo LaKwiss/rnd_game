@@ -46,7 +46,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '489153684515',
     projectId: 'little-strategy-6837a',
     authDomain: 'little-strategy-6837a.firebaseapp.com',
-    databaseURL: 'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'little-strategy-6837a.firebasestorage.app',
     measurementId: 'G-PGYEQ3HF38',
   );
@@ -56,7 +57,8 @@ class DefaultFirebaseOptions {
     appId: '1:489153684515:android:a96b9b8fe4cf52e4fe3d96',
     messagingSenderId: '489153684515',
     projectId: 'little-strategy-6837a',
-    databaseURL: 'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'little-strategy-6837a.firebasestorage.app',
   );
 
@@ -65,9 +67,11 @@ class DefaultFirebaseOptions {
     appId: '1:489153684515:ios:57488f5461cdd3a6fe3d96',
     messagingSenderId: '489153684515',
     projectId: 'little-strategy-6837a',
-    databaseURL: 'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'little-strategy-6837a.firebasestorage.app',
-    iosClientId: '489153684515-vn4ro1356rlntfl7kpialek21u4e3cac.apps.googleusercontent.com',
+    iosClientId:
+        '489153684515-vn4ro1356rlntfl7kpialek21u4e3cac.apps.googleusercontent.com',
     iosBundleId: 'com.example.rndGame',
   );
 
@@ -76,9 +80,11 @@ class DefaultFirebaseOptions {
     appId: '1:489153684515:ios:57488f5461cdd3a6fe3d96',
     messagingSenderId: '489153684515',
     projectId: 'little-strategy-6837a',
-    databaseURL: 'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'little-strategy-6837a.firebasestorage.app',
-    iosClientId: '489153684515-vn4ro1356rlntfl7kpialek21u4e3cac.apps.googleusercontent.com',
+    iosClientId:
+        '489153684515-vn4ro1356rlntfl7kpialek21u4e3cac.apps.googleusercontent.com',
     iosBundleId: 'com.example.rndGame',
   );
 
@@ -88,7 +94,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '489153684515',
     projectId: 'little-strategy-6837a',
     authDomain: 'little-strategy-6837a.firebaseapp.com',
-    databaseURL: 'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
+    databaseURL:
+        'https://little-strategy-6837a-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'little-strategy-6837a.firebasestorage.app',
     measurementId: 'G-ZLSHE7SV0N',
   );
