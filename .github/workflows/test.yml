@@ -17,21 +17,25 @@ jobs:
               run: dart format --set-exit-if-changed .
 
             - name: Analyze project
-              run: flutter analyze
+              run: flutter analyze || exit 1
 
-            - name: Run tests with coverage
-              run: flutter test --coverage
-              
-            - name: Upload coverage report
-              uses: actions/upload-artifact@v3
-              with:
-                name: coverage-report
-                path: coverage/lcov.info
+            - name: Create test results directory
+              run: mkdir -p build/test-results
+
+            - name: Run tests and generate XML report
+              run: flutter test --machine | tojunit --output build/test-results/test-output.xml
 
             - name: Upload test results
               uses: actions/upload-artifact@v3
               with:
                 name: test-results
                 path: build/test-results/test-output.xml
-              
-              
+
+            - name: Run tests with coverage
+              run: flutter test --coverage
+
+            - name: Upload coverage report
+              uses: actions/upload-artifact@v3
+              with:
+                name: coverage-report
+                path: coverage/lcov.info
