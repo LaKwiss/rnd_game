@@ -308,6 +308,12 @@ class LobbyContent extends ConsumerWidget {
                   title: 'Logout',
                   route: '/login',
                   replace: true,
+                  onTap: () async {
+                    await AuthRepository.completeLogout();
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacementNamed('/');
+                    }
+                  },
                 ),
               ],
             ),
@@ -323,7 +329,11 @@ class LobbyContent extends ConsumerWidget {
     required String title,
     required String route,
     bool replace = false,
+    Function? onTap,
   }) {
+    if (onTap != null) {
+      onTap();
+    }
     return ListTile(
       minTileHeight: 60.0,
       leading: Icon(

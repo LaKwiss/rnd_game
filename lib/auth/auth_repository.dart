@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rnd_game/cached_user_repository.dart';
 
 class AuthRepository {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -45,5 +46,10 @@ class AuthRepository {
       return 'Veuillez entrer un email valide';
     }
     return null;
+  }
+
+  static Future<void> completeLogout() async {
+    await CachedUserRepository.clearCache();
+    await _auth.signOut();
   }
 }
