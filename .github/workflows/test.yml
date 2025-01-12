@@ -13,9 +13,8 @@ jobs:
             - name: Install dependencies
               run: flutter pub get
 
-            - name: Install junitreport
+            - name: Activate globally junitreport
               run: dart pub global activate junitreport
-            
 
             - name: Verify formatting
               run: dart format --set-exit-if-changed .
