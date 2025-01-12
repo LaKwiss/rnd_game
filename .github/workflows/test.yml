@@ -2,4 +2,36 @@ name: Flutter Tests
 on: push
 jobs: 
     test:
-        runs-on
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: '3.27.0'
+                  channel: 'stable'
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Verify formatting
+              run: dart format --set-exit-if-changed .
+
+            - name: Analyze project
+              run: flutter analyze
+
+            - name: Run tests with coverage
+              run: flutter test --coverage
+              
+            - name: Upload coverage report
+              uses: actions/upload-artifact@v3
+              with:
+                name: coverage-report
+                path: coverage/lcov.info
+
+            - name: Upload test results
+              uses: actions/upload-artifact@v3
+              with:
+                name: test-results
+                path: build/test-results/test-output.xml
+              
+              
