@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rnd_game/app_theme.dart';
 import 'package:rnd_game/auth/auth_repository.dart';
-import 'package:rnd_game/cached_user_repository.dart';
 import 'package:rnd_game/current_player_provider.dart';
 import 'package:rnd_game/data/statistics_repository.dart';
 import 'package:rnd_game/exploding_atoms.dart';
@@ -15,7 +14,6 @@ import 'package:rnd_game/lobby/join_game_dialog.dart';
 import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_game_card.dart';
 import 'package:rnd_game/main.dart';
-import 'package:rnd_game/shared_preferences_repository.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -38,9 +36,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
       final uid = await AuthRepository.getUid();
       if (uid != null) {
-        await CachedUserRepository.updateDisplayName(uid, username);
         final DateTime? lastConnection =
-            await SharedPreferencesRepository.getLastConnection();
+            await AuthRepository.getLastConnection(uid);
         if (lastConnection != null) {
           final difference =
               DateTime.now().difference(lastConnection).inSeconds;
@@ -309,7 +306,7 @@ class LobbyContent extends ConsumerWidget {
                   route: '/login',
                   replace: true,
                   onTap: () async {
-                    await AuthRepository.completeLogout();
+                    await AuthRepository.logout();
                     if (context.mounted) {
                       Navigator.of(context).pushReplacementNamed('/');
                     }

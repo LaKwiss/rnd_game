@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rnd_game/app_theme.dart';
-import 'package:rnd_game/cached_user_repository.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_statuschip.dart';
@@ -99,7 +99,7 @@ class GameCard extends ConsumerWidget {
     final isNext = id == game.nextPlayerId;
 
     return FutureBuilder<String?>(
-      future: CachedUserRepository.getDisplayName(id),
+      future: AuthRepository.getDisplayName(id),
       builder: (context, snapshot) {
         final displayName = snapshot.data ?? 'Chargement...';
 

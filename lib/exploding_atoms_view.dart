@@ -1,13 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:rnd_game/cached_user_repository.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:rnd_game/cell_view.dart';
 import 'package:rnd_game/exploding_atoms.dart';
 import 'package:rnd_game/exploding_atoms_repository.dart';
 import 'package:rnd_game/exploding_atoms_stream_provider.dart';
 import 'package:rnd_game/main.dart';
-import 'package:rnd_game/shared_preferences_repository.dart';
 
 class ExplodingAtomsView extends ConsumerStatefulWidget {
   final String gameId;
@@ -31,7 +30,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
   }
 
   Future<void> _initializePlayer() async {
-    final playerId = await SharedPreferencesRepository.getUid();
+    final playerId = await AuthRepository.getUid();
     if (!mounted) return;
 
     setState(() {
@@ -51,7 +50,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
             FutureBuilder<String>(
               future: currentPlayerTurn
                   ? Future.value('🎯 C\'est à vous de jouer !')
-                  : CachedUserRepository.getDisplayName(game.nextPlayerId)
+                  : AuthRepository.getDisplayName(game.nextPlayerId)
                       .then((name) => '⏳ Tour de ${name ?? 'Inconnu'}'),
               builder: (context, snapshot) {
                 return Text(
@@ -81,7 +80,7 @@ class _ExplodingAtomsViewState extends ConsumerState<ExplodingAtomsView> {
 
               return Chip(
                 label: FutureBuilder<String?>(
-                  future: CachedUserRepository.getDisplayName(playerId),
+                  future: AuthRepository.getDisplayName(playerId),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Text('Chargement...');

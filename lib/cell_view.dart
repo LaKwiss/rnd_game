@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:rnd_game/cell.dart';
 import 'package:rnd_game/exploding_atoms.dart';
-import 'package:rnd_game/shared_preferences_repository.dart';
 
 class CellView extends ConsumerStatefulWidget {
   const CellView({
@@ -30,7 +30,7 @@ class _CellViewState extends ConsumerState<CellView> {
   }
 
   Future<void> _initializePlayer() async {
-    final playerId = await SharedPreferencesRepository.getUid();
+    final playerId = await AuthRepository.getUid();
     if (!mounted) return;
 
     setState(() {

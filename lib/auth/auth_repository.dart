@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rnd_game/cached_user_repository.dart';
 
 class AuthRepository {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static FutureOr<bool> login(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
@@ -48,8 +49,28 @@ class AuthRepository {
     return null;
   }
 
-  static Future<void> completeLogout() async {
-    await CachedUserRepository.clearCache();
-    await _auth.signOut();
+  static Future<String?> getDisplayName(String uid) async {
+    _firestore.collection('users').doc(uid).get().then((doc) {
+      return doc['displayName'];
+    });
+    return null;
+  }
+
+  static Future<DateTime?> getLastConnection(String uid) async {
+    _firestore.collection('users').doc(uid).get().then((doc) {
+      return doc['lastConnection'];
+    });
+    return null;
+  }
+
+  static Future<void> setLastConnection(DateTime lastConnection) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      _firestore.collection('users').doc(uid).update(
+        {
+          'lastConnection': lastConnection,
+        },
+      );
+    }
   }
 }

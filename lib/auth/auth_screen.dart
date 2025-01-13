@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rnd_game/app_theme.dart';
 import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:rnd_game/main.dart';
-import 'package:rnd_game/shared_preferences_repository.dart';
 import 'package:rnd_game/widgets/error_message.dart';
 import 'package:rnd_game/widgets/moberly_text_field.dart';
 
@@ -129,7 +128,6 @@ class _AuthScreenState extends State<AuthScreen> {
       }
 
       if (userCredential.user?.uid != null) {
-        await SharedPreferencesRepository.setUid(userCredential.user!.uid);
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/lobby');
         }
