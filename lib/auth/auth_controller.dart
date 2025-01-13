@@ -1,6 +1,7 @@
 // auth_controller.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rnd_game/auth/auth_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController extends StateNotifier<AsyncValue<String?>> {
@@ -11,8 +12,7 @@ class AuthController extends StateNotifier<AsyncValue<String?>> {
   Future<void> _initialize() async {
     state = const AsyncValue.loading();
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final uid = prefs.getString('uid');
+      final uid = await AuthRepository.getUid();
       state = AsyncValue.data(uid);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);

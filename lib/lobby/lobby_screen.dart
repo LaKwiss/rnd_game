@@ -29,9 +29,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       final String? username = await AuthRepository.getCurrentUsername();
       if (username == null || username.isEmpty) {
         if (mounted) {
-          context.navigateToDisplayNameCreation();
+          log('Navigating to display name creation');
+          //context.navigateToDisplayNameCreation();
+          return;
         }
-        return;
       }
 
       final uid = await AuthRepository.getUid();
@@ -60,14 +61,17 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       loading: () => const _LoadingScreen(),
       error: (error, stack) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pushReplacementNamed('/');
+          log('Navigating to login screen: $error \n $stack');
+          //Navigator.of(context).pushReplacementNamed('/');
         });
         return const _LoadingScreen();
       },
       data: (playerId) {
+        log('PlayerId: $playerId');
         if (playerId == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed('/');
+            log('Navigating to login screen');
+            //Navigator.of(context).pushReplacementNamed('/');
           });
           return const _LoadingScreen();
         }
@@ -307,9 +311,6 @@ class LobbyContent extends ConsumerWidget {
                   replace: true,
                   onTap: () async {
                     await AuthRepository.logout();
-                    if (context.mounted) {
-                      Navigator.of(context).pushReplacementNamed('/');
-                    }
                   },
                 ),
               ],
