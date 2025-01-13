@@ -6,6 +6,7 @@ import 'package:rnd_game/landing_page.dart';
 import 'package:rnd_game/lobby/lobby_screen.dart';
 import 'package:rnd_game/exploding_atoms_view.dart';
 import 'package:rnd_game/firebase_options.dart';
+import 'package:rnd_game/player_profile_screen.dart';
 import 'package:rnd_game/temp/display_name_screen.dart';
 
 void main() async {
@@ -38,6 +39,7 @@ class _MainAppState extends ConsumerState<MainApp> {
         '/display-name': (context) => const DisplayNameScreen(),
         '/login': (context) => AuthScreen(authMode: AuthMode.signIn),
         '/register': (context) => AuthScreen(authMode: AuthMode.signUp),
+        '/profile': (context) => const PlayerProfileScreen(),
       },
       // onGenerateRoute uniquement pour les routes dynamiques
       onGenerateRoute: (settings) => _handleDynamicRoutes(settings),

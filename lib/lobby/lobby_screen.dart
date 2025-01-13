@@ -13,7 +13,6 @@ import 'package:rnd_game/lobby/create_game_button.dart';
 import 'package:rnd_game/lobby/join_game_dialog.dart';
 import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_game_card.dart';
-import 'package:rnd_game/main.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -71,7 +70,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         if (playerId == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             log('Navigating to login screen');
-            //Navigator.of(context).pushReplacementNamed('/');
+            Navigator.of(context).pushReplacementNamed('/');
           });
           return const _LoadingScreen();
         }
@@ -307,11 +306,8 @@ class LobbyContent extends ConsumerWidget {
                   context: context,
                   icon: Icons.logout,
                   title: 'Logout',
-                  route: '/login',
+                  route: '/',
                   replace: true,
-                  onTap: () async {
-                    await AuthRepository.logout();
-                  },
                 ),
               ],
             ),
@@ -329,28 +325,28 @@ class LobbyContent extends ConsumerWidget {
     bool replace = false,
     Function? onTap,
   }) {
-    if (onTap != null) {
-      onTap();
-    }
-    return ListTile(
-      minTileHeight: 60.0,
-      leading: Icon(
-        icon,
-        color: Colors.white,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
+    return GestureDetector(
+      onTap: onTap as void Function()?,
+      child: ListTile(
+        minTileHeight: 60.0,
+        leading: Icon(
+          icon,
           color: Colors.white,
         ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        onTap: () {
+          if (replace) {
+            Navigator.of(context).pushReplacementNamed(route);
+          } else {
+            Navigator.of(context).pushNamed(route);
+          }
+        },
       ),
-      onTap: () {
-        if (replace) {
-          Navigator.of(context).pushReplacementNamed(route);
-        } else {
-          Navigator.of(context).pushNamed(route);
-        }
-      },
     );
   }
 }

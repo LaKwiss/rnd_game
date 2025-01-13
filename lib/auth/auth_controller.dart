@@ -60,12 +60,12 @@ class AuthController extends StateNotifier<AsyncValue<String?>> {
     }
   }
 
-  Future<void> logout() async {
-    await FirebaseAuth.instance.signOut();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('uid');
-    state = const AsyncValue.data(null);
-  }
+  // Future<void> logout() async {
+  //   await FirebaseAuth.instance.signOut();
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.remove('uid');
+  //   state = const AsyncValue.data(null);
+  // }
 }
 
 final authControllerProvider =

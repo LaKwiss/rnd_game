@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -51,11 +50,11 @@ class AuthRepository {
   }
 
   static Future<String?> getDisplayName(String uid) async {
-    log('getDisplayName $uid');
-    _firestore.collection('users').doc(uid).get().then((doc) {
-      return doc['displayName'];
-    });
-    return null;
+    final doc = await _firestore.collection('users').doc(uid).get();
+    final displayName =
+        doc.data()?['displayName'] as String? ?? 'Joueur Anonyme';
+
+    return displayName;
   }
 
   static Future<DateTime?> getLastConnection(String uid) async {

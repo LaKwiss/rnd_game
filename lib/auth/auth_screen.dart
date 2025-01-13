@@ -43,6 +43,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await AuthRepository.logout();
+    });
+
     super.initState();
     _authMode = widget.authMode;
   }
