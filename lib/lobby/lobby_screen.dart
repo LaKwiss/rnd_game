@@ -13,6 +13,7 @@ import 'package:rnd_game/lobby/create_game_button.dart';
 import 'package:rnd_game/lobby/join_game_dialog.dart';
 import 'package:rnd_game/lobby/lobby_controller.dart';
 import 'package:rnd_game/lobby/lobby_game_card.dart';
+import 'package:rnd_game/main.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -24,30 +25,34 @@ class LobbyScreen extends ConsumerStatefulWidget {
 class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final String? username = await AuthRepository.getCurrentUsername();
       if (username == null || username.isEmpty) {
         if (mounted) {
-          log('Navigating to display name creation');
-          //context.navigateToDisplayNameCreation();
-          return;
+          context.navigateToDisplayNameCreation();
         }
+        return;
       }
 
-      final uid = await AuthRepository.getUid();
-      if (uid != null) {
-        final DateTime? lastConnection =
-            await AuthRepository.getLastConnection(uid);
-        if (lastConnection != null) {
-          final difference =
-              DateTime.now().difference(lastConnection).inSeconds;
-          await StatisticsRepository.incTimePlayed(
-              Duration(seconds: difference));
+      try {
+        final uid = await AuthRepository.getUid();
+        if (uid != null && mounted) {
+          final lastConnection = await AuthRepository.getLastConnection(uid);
+          log('Last connection: $lastConnection');
+          if (lastConnection != null) {
+            final now = DateTime.now();
+            final timePlayed = now.difference(lastConnection);
+            if (timePlayed.inSeconds > 0) {
+              await StatisticsRepository.incTimePlayed(timePlayed);
+            }
+          }
+          await StatisticsRepository.setLastConnection(DateTime.now());
         }
-        await StatisticsRepository.setLastConnection(DateTime.now());
+      } catch (e, s) {
+        debugPrint('Erreur lors de la mise à jour du temps de jeu: $e, $s');
       }
     });
-    super.initState();
   }
 
   @override

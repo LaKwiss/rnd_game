@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rnd_game/app_theme.dart';
@@ -103,8 +101,6 @@ class GameCard extends ConsumerWidget {
     return FutureBuilder<String?>(
       future: AuthRepository.getDisplayName(id),
       builder: (context, snapshot) {
-        log('snapshot: ${snapshot.data}');
-
         final displayName = snapshot.data ?? 'Chargement...';
 
         return Container(

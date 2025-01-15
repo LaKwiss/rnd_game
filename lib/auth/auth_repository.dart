@@ -58,10 +58,9 @@ class AuthRepository {
   }
 
   static Future<DateTime?> getLastConnection(String uid) async {
-    _firestore.collection('users').doc(uid).get().then((doc) {
-      return doc['lastConnection'];
-    });
-    return null;
+    final doc = await _firestore.collection('users').doc(uid).get();
+    final lastConnection = doc.data()?['lastConnection'] as Timestamp?;
+    return lastConnection?.toDate();
   }
 
   static Future<void> setLastConnection(DateTime lastConnection) async {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rnd_game/auth/auth_repository.dart';
@@ -51,12 +52,11 @@ class StatisticsRepository {
     }
   }
 
-  static FutureOr<void> incTimePlayed(Duration timePlayed) async {
+  static FutureOr<void> incTimePlayed(Duration duration) async {
     final uid = await AuthRepository.getUid();
-    if (uid != null) {
-      FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'timePlayed': FieldValue.increment(timePlayed.inSeconds),
-      });
-    }
+    log(duration.toString());
+    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      'timePlayed': FieldValue.increment(duration.inSeconds),
+    });
   }
 }
