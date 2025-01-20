@@ -73,7 +73,6 @@ class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
                 padding: const EdgeInsets.all(AppTheme.padding),
                 child: Column(
                   children: [
-                    // Avatar et nom d'utilisateur
                     Container(
                       padding: const EdgeInsets.all(AppTheme.padding),
                       decoration: BoxDecoration(
@@ -102,7 +101,6 @@ class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Statistiques
                     Container(
                       padding: const EdgeInsets.all(AppTheme.padding),
                       decoration: BoxDecoration(
